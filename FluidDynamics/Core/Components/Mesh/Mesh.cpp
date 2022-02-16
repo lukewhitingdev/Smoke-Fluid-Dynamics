@@ -122,6 +122,9 @@ Mesh::~Mesh()
 
 void Mesh::Render()
 {
+	// Set the input layout
+	direct3D->immediateContext->IASetInputLayout(vertexLayout);
+
 	// Set vertex buffer
 	UINT stride = sizeof(SimpleVertex);
 	UINT offset = 0;

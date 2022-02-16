@@ -17,6 +17,7 @@ Transform::~Transform()
 void Transform::Update(float deltaTime)
 {
 	rotation.y += deltaTime;
+	rotation.z += deltaTime / 2;
 
 	DirectX::XMMATRIX mTranslate = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
 	DirectX::XMMATRIX mScale = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);

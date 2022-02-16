@@ -151,6 +151,7 @@ HRESULT		InitWorld(int width, int height)
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(-5, 0, 0));
 
     camera = new GameObject("Camera");
+    camera->setRenderable(false);
     Camera* cam = camera->addComponent<Camera>();
     cam->setTransfrom(camera->getTransform());
     camera->setPosition(DirectX::XMFLOAT3(0.0f, 0.0f, -3.0f));
@@ -163,8 +164,10 @@ HRESULT		InitWorld(int width, int height)
     grid->removeMesh();
     grid->removeMaterial();
     Grid* gridComponent = grid->addComponent<Grid>();
+    gridComponent->setMatrices(*grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
     gridComponent->GenerateGrid<int>(10, 10, 1);
     gameObjects.emplace_back(grid);
+
 
 	return S_OK;
 }

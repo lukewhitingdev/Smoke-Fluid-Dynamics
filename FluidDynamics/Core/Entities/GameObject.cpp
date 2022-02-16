@@ -38,25 +38,32 @@ void GameObject::setPosition(XMFLOAT3 position)
 void GameObject::update(float t, ID3D11DeviceContext* pContext)
 {
 	UNREFERENCED_PARAMETER(pContext);
-	for(auto it = components.begin(); it != components.end(); it++)
+
+	if(this->updateable)
 	{
-		std::vector<Component*>* componentVector = &it->second;
-		for(int i = 0; i < componentVector->size(); i++)
+		for (auto it = components.begin(); it != components.end(); it++)
 		{
-			componentVector->at(i)->Update(t);
+			std::vector<Component*>* componentVector = &it->second;
+			for (int i = 0; i < componentVector->size(); i++)
+			{
+				componentVector->at(i)->Update(t);
+			}
 		}
 	}
 }
 
 void GameObject::draw(ID3D11DeviceContext* pContext)
 {
-	for (auto it = components.begin(); it != components.end(); it++)
+	if(this->renderable)
 	{
-		std::vector<Component*>* componentVector = &it->second;
-		for (int i = 0; i < componentVector->size(); i++)
+		for (auto it = components.begin(); it != components.end(); it++)
 		{
-			componentVector->at(i)->Render();
+			std::vector<Component*>* componentVector = &it->second;
+			for (int i = 0; i < componentVector->size(); i++)
+			{
+				componentVector->at(i)->Render();
+			}
 		}
+		pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 	}
-	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }

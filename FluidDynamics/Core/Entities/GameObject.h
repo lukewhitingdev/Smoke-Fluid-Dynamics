@@ -30,8 +30,16 @@ public:
 	void removeMaterial() { this->removeComponent<Material>(); material = nullptr; };
 	void setPosition(XMFLOAT3 position);
 
+	void setRenderable(bool val) { renderable = val; };
+	bool getRenderable() { return renderable; };
+	void setUpdateable(bool val) { updateable = val; };
+	bool getUpdateable() { return updateable; };
+
 private:
 	
+	bool renderable = true;
+	bool updateable = true;
+
 	Transform* transform;
 	Mesh* mesh;
 	Material* material;
