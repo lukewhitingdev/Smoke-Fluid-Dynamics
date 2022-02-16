@@ -6,5 +6,6 @@ enum class ComponentTypes
 	Transform,
 	Mesh,
 	Camera,
-	Material
+	Material,
+	Grid
 };

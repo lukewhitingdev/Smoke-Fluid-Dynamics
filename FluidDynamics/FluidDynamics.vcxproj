@@ -363,6 +363,7 @@
     <ClCompile Include="Core\Components\Camera\Camera.cpp" />
     <ClCompile Include="Dependencies\Textures\DDSTextureLoader.cpp" />
     <ClCompile Include="Core\Entities\GameObject.cpp" />
+    <ClCompile Include="Core\Components\Grid\Grid.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Core\Components\Test\TestComponent.cpp" />
     <ClCompile Include="Core\Components\Transform\Transform.cpp" />
@@ -379,6 +380,7 @@
     <ClInclude Include="Core\Entity System\Entity.h" />
     <ClInclude Include="Dependencies\Textures\DDSTextureLoader.h" />
     <ClInclude Include="Core\Entities\GameObject.h" />
+    <ClInclude Include="Core\Components\Grid\Grid.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Core\Components\Mesh\Mesh.h" />
     <ClInclude Include="Core\Components\Material\Material.h" />

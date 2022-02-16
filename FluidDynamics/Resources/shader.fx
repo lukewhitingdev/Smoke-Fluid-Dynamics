@@ -14,7 +14,6 @@ cbuffer ConstantBuffer : register( b0 )
 	matrix World;
 	matrix View;
 	matrix Projection;
-	float4 vOutputColor;
 }
 
 Texture2D txDiffuse : register(t0);
@@ -216,12 +215,4 @@ float4 PS(PS_INPUT IN) : SV_TARGET
 	float4 finalColor = (emissive + ambient + diffuse + specular) * texColor;
 
 	return finalColor;
-}
-
-//--------------------------------------------------------------------------------------
-// PSSolid - render a solid color
-//--------------------------------------------------------------------------------------
-float4 PSSolid(PS_INPUT input) : SV_Target
-{
-	return vOutputColor;
 }

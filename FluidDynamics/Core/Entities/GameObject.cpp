@@ -38,12 +38,6 @@ void GameObject::setPosition(XMFLOAT3 position)
 void GameObject::update(float t, ID3D11DeviceContext* pContext)
 {
 	UNREFERENCED_PARAMETER(pContext);
-	transform->Update(t);
-	if(material != nullptr)
-	{
-		material->Update(t);
-	}
-
 	for(auto it = components.begin(); it != components.end(); it++)
 	{
 		std::vector<Component*>* componentVector = &it->second;
@@ -56,15 +50,13 @@ void GameObject::update(float t, ID3D11DeviceContext* pContext)
 
 void GameObject::draw(ID3D11DeviceContext* pContext)
 {
-	if(mesh != nullptr)
+	for (auto it = components.begin(); it != components.end(); it++)
 	{
-		mesh->Render();
-
-		if(material != nullptr)
+		std::vector<Component*>* componentVector = &it->second;
+		for (int i = 0; i < componentVector->size(); i++)
 		{
-			material->Render();
+			componentVector->at(i)->Render();
 		}
-
-		pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 	}
+	pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 }

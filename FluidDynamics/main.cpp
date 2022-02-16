@@ -23,6 +23,7 @@
 #include <Utility/Direct3D/Headers/D3D.h>
 #include "Core/Components/Transform/Transform.h"
 #include <Core/Components/Camera/Camera.h>
+#include <Core/Components/Grid/Grid.h>
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -137,16 +138,17 @@ HRESULT		InitMesh()
 }
 
 GameObject* camera;
+GameObject* grid;
 
 // ***************************************************************************************
 // InitWorld
 // ***************************************************************************************
 HRESULT		InitWorld(int width, int height)
 {
-    gameObjects.emplace_back(new GameObject("Test1"));
-    gameObjects.emplace_back(new GameObject("Test2"));
-    gameObjects[0]->setPosition(DirectX::XMFLOAT3(0, 0, 0));
-    gameObjects[0]->setPosition(DirectX::XMFLOAT3(-5, 0, 0));
+    //gameObjects.emplace_back(new GameObject("Test1"));
+    //gameObjects.emplace_back(new GameObject("Test2"));
+    //gameObjects[0]->setPosition(DirectX::XMFLOAT3(0, 0, 0));
+    //gameObjects[0]->setPosition(DirectX::XMFLOAT3(-5, 0, 0));
 
     camera = new GameObject("Camera");
     Camera* cam = camera->addComponent<Camera>();
@@ -155,8 +157,14 @@ HRESULT		InitWorld(int width, int height)
     cam->updateProjection(width, height);
     camera->removeMaterial();
     camera->removeMesh();
-
     gameObjects.emplace_back(camera);
+
+    grid = new GameObject("Grid");
+    grid->removeMesh();
+    grid->removeMaterial();
+    Grid* gridComponent = grid->addComponent<Grid>();
+    gridComponent->GenerateGrid<int>(10, 10, 1);
+    gameObjects.emplace_back(grid);
 
 	return S_OK;
 }
@@ -252,6 +260,10 @@ void Render()
     XMFLOAT4X4 floatView = camComponent->getViewMatrix();
     XMFLOAT4X4 floatProj = camComponent->getProjectionMatrix();
 
+    // Render the cube
+    direct3D->immediateContext->VSSetConstantBuffers(0, 1, &matrixConstBuffer);
+    direct3D->immediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBuffer);
+
     for(int i = 0; i < gameObjects.size(); i++)
     {
         // get the game object world transform
@@ -264,10 +276,6 @@ void Render()
 
         gameObjects[i]->draw(direct3D->immediateContext);
     }
-
-    // Render the cube
-    direct3D->immediateContext->VSSetConstantBuffers(0, 1, &matrixConstBuffer);
-    direct3D->immediateContext->PSSetConstantBuffers(2, 1, &g_pLightConstantBuffer);
 
     // Present our back buffer to our front buffer
     direct3D->swapChain->Present( 0, 0 );
