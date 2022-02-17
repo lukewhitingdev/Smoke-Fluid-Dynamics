@@ -166,8 +166,8 @@ HRESULT		InitWorld(int width, int height)
     grid->removeMaterial();
     Grid* gridComponent = grid->addComponent<Grid>();
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridComponent->GenerateGrid<int>(10, 10, 10);
-    grid->getTransform()->setPosition(DirectX::XMFLOAT3(-5, -5, 0));
+    gridComponent->GenerateGrid<int>(10, 10, 1);
+    grid->getTransform()->setPosition(DirectX::XMFLOAT3(-50, -50, 0));
     gameObjects.emplace_back(grid);
 
 	return S_OK;
