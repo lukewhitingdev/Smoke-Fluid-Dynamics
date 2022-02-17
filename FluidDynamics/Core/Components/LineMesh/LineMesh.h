@@ -19,18 +19,24 @@ private:
 
 	struct Vertex
 	{
-		Vertex() { Pos = DirectX::XMFLOAT3(0, 0, 0); Normal = DirectX::XMFLOAT3(0, 0, 0); TexCoord = DirectX::XMFLOAT2(0, 0); };
-		Vertex(DirectX::XMFLOAT3 pos) { Pos = pos; Normal = DirectX::XMFLOAT3(0, 0, 0); TexCoord = DirectX::XMFLOAT2(0, 0); };
+		Vertex() { Pos = DirectX::XMFLOAT3(0, 0, 0); Normal = DirectX::XMFLOAT3(0, 0, 0); TexCoord = DirectX::XMFLOAT2(0, 0); Color = DirectX::XMFLOAT2(0, 0); };
+		Vertex(DirectX::XMFLOAT3 pos) { Pos = pos; Normal = DirectX::XMFLOAT3(0, 0, 0); TexCoord = DirectX::XMFLOAT2(0, 0); Color = DirectX::XMFLOAT2(0, 0); };
 		DirectX::XMFLOAT3 Pos;
 		DirectX::XMFLOAT3 Normal;
 		DirectX::XMFLOAT2 TexCoord;
+		DirectX::XMFLOAT2 Color;
+	};
+
+	struct Instance
+	{
+		DirectX::XMFLOAT3 position;
 	};
 
 	struct MatrixBuffer
 	{
-		MatrixBuffer() : mView(), mProjection() {};
-		DirectX::XMFLOAT4X4* mView;
-		DirectX::XMFLOAT4X4* mProjection;
+		MatrixBuffer() : view(), projection() {};
+		DirectX::XMFLOAT4X4* view;
+		DirectX::XMFLOAT4X4* projection;
 	};
 
 	struct MatrixConstantBuffer
@@ -50,6 +56,9 @@ private:
 
 	ID3D11Buffer* constantBuffer = nullptr;
 	MatrixBuffer matrixBuffer;
+
+	ID3D11Buffer* instanceBuffer = nullptr;
+	int instanceCount = 50*50*50;
 
 	D3D* direct3D = nullptr;
 };

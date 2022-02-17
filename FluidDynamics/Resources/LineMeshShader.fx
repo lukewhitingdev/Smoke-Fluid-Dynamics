@@ -8,6 +8,9 @@ cbuffer ConstantBuffer : register(b0)
 struct VS_INPUT
 {
     float4 Pos : POSITION;
+    float3 Norm : NORMAL;
+    float2 Tex : TEXCOORD0;
+    float3 instancePosition : TEXCOORD1;
 };
 
 struct PS_INPUT
@@ -18,6 +21,11 @@ struct PS_INPUT
 PS_INPUT VSMain( VS_INPUT input )
 {
     PS_INPUT output = (PS_INPUT) 0;
+
+    input.Pos.x += input.instancePosition.x;
+    input.Pos.y += input.instancePosition.y;
+    input.Pos.z += input.instancePosition.z;
+
     output.Pos = mul(input.Pos, World);
     output.Pos = mul(output.Pos, View);
     output.Pos = mul(output.Pos, Projection);

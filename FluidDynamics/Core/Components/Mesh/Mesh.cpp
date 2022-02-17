@@ -138,4 +138,6 @@ void Mesh::Render()
 
 	// Set the vertex buffer.
 	direct3D->immediateContext->VSSetShader(vertexShader, nullptr, 0);
+
+	direct3D->immediateContext->DrawIndexed(36, 0, 0);
 }

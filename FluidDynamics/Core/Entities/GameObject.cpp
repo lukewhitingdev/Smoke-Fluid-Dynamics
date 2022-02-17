@@ -60,7 +60,6 @@ void GameObject::draw(ID3D11DeviceContext* pContext)
 {
 	if(this->renderable)
 	{
-		bool nothingRendered = true;
 		for (auto it = components.begin(); it != components.end(); it++)
 		{
 			std::vector<Component*>* componentVector = &it->second;
@@ -70,13 +69,8 @@ void GameObject::draw(ID3D11DeviceContext* pContext)
 				if(component->getRenderable())
 				{
 					component->Render();
-					nothingRendered = false;
 				}
 			}
-		}
-		if(!nothingRendered)
-		{
-			pContext->DrawIndexed(NUM_VERTICES, 0, 0);
 		}
 	}
 }
