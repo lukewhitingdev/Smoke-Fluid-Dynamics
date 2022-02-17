@@ -15,6 +15,7 @@ Camera::Camera() : projectionMatrix(XMFLOAT4X4()), viewMatrix(XMFLOAT4X4()), tra
 	XMStoreFloat4x4(&viewMatrix, DirectX::XMMatrixLookAtLH(XMLoadFloat4(&Eye), XMLoadFloat4(&At), XMLoadFloat4(&Up)));
 
 	this->setType(ComponentTypes::Camera);
+	this->setRenderable(false);
 }
 
 Camera::~Camera()

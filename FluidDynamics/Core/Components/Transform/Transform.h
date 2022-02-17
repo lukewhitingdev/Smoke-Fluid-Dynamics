@@ -10,7 +10,8 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void Render(float deltaTime) { UNREFERENCED_PARAMETER(deltaTime); };
 
-	void setPosition(DirectX::XMFLOAT3 POSITION) { position = POSITION; };
+	void setPosition(DirectX::XMFLOAT3 val) { position = val; };
+	void setScale(DirectX::XMFLOAT3 val) { scale = val; }
 	DirectX::XMFLOAT3 getPosition() { return position; }
 	DirectX::XMFLOAT4X4* getWorld() { return &world; };
 

@@ -8,6 +8,7 @@ Transform::Transform()
 	rotation = DirectX::XMFLOAT3(0, 0, 0);
 
 	this->setType(ComponentTypes::Transform);
+	this->setRenderable(false);
 }
 
 Transform::~Transform()

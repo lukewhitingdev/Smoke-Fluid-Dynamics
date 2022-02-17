@@ -24,6 +24,7 @@
 #include "Core/Components/Transform/Transform.h"
 #include <Core/Components/Camera/Camera.h>
 #include <Core/Components/Grid/Grid.h>
+#include <Core/Components/LineMesh/LineMesh.h>
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -168,6 +169,13 @@ HRESULT		InitWorld(int width, int height)
     gridComponent->GenerateGrid<int>(10, 10, 1);
     gameObjects.emplace_back(grid);
 
+    GameObject* gridVoxel = new GameObject("Grid Voxel");
+    LineMesh* lineMesh = gridVoxel->addComponent<LineMesh>();
+    lineMesh->setMatricies(cam->getViewMatrix(), cam->getProjectionMatrix());
+    gridVoxel->removeMesh();
+    gridVoxel->removeMaterial();
+    gridVoxel->getTransform()->setScale(DirectX::XMFLOAT3(1, 1, 1));
+    gameObjects.emplace_back(gridVoxel);
 
 	return S_OK;
 }

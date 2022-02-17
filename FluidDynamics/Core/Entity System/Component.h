@@ -15,6 +15,12 @@ public:
 	void setParent(void* ent) { parent = ent; };
 	void* getParent() { return parent; };
 
+	void setRenderable(bool val) { renderable = val; };
+	bool getRenderable() { return renderable; };
+
+	void setUpdateable(bool val) { updateable = val; };
+	bool getUpdatable() { return updateable; };
+
 	virtual void Update(float deltaTime) { UNREFERENCED_PARAMETER(deltaTime); };
 	virtual void Render() {};
 
@@ -22,4 +28,6 @@ private:
 	void* parent;
 	ComponentTypes type;
 	unsigned long long id;
+	bool renderable = true;
+	bool updateable = true;
 };

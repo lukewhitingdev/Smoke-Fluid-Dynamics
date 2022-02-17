@@ -46,7 +46,11 @@ void GameObject::update(float t, ID3D11DeviceContext* pContext)
 			std::vector<Component*>* componentVector = &it->second;
 			for (int i = 0; i < componentVector->size(); i++)
 			{
-				componentVector->at(i)->Update(t);
+				Component* component = componentVector->at(i);
+				if (component->getUpdatable())
+				{
+					component->Update(t);
+				}
 			}
 		}
 	}
@@ -56,14 +60,23 @@ void GameObject::draw(ID3D11DeviceContext* pContext)
 {
 	if(this->renderable)
 	{
+		bool nothingRendered = true;
 		for (auto it = components.begin(); it != components.end(); it++)
 		{
 			std::vector<Component*>* componentVector = &it->second;
 			for (int i = 0; i < componentVector->size(); i++)
 			{
-				componentVector->at(i)->Render();
+				Component* component = componentVector->at(i);
+				if(component->getRenderable())
+				{
+					component->Render();
+					nothingRendered = false;
+				}
 			}
 		}
-		pContext->DrawIndexed(NUM_VERTICES, 0, 0);
+		if(!nothingRendered)
+		{
+			pContext->DrawIndexed(NUM_VERTICES, 0, 0);
+		}
 	}
 }
