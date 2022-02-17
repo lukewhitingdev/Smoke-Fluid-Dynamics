@@ -42,6 +42,5 @@ void Camera::Update(float deltaTime)
 	XMFLOAT4 Eye = XMFLOAT4(eye.x, eye.y, eye.z, 1);
 	XMFLOAT4 At = XMFLOAT4(at.x, at.y, at.z, 1);
 	XMFLOAT4 Up = XMFLOAT4(up.x, up.y, up.z, 1);
-
 	XMStoreFloat4x4(&viewMatrix,XMMatrixLookAtLH(XMLoadFloat4(&Eye), XMLoadFloat4(&At), XMLoadFloat4(&Up)));
 }

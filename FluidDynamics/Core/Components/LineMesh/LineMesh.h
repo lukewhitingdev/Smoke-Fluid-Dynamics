@@ -10,7 +10,7 @@ public:
 	LineMesh();
 	~LineMesh();
 
-	void setMatricies(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 projection);
+	void setMatricies(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection);
 
 	void Render();
 	void Update(float deltaTime);
@@ -28,9 +28,9 @@ private:
 
 	struct MatrixBuffer
 	{
-		MatrixBuffer() : mView(DirectX::XMFLOAT4X4()), mProjection(DirectX::XMFLOAT4X4()) {};
-		DirectX::XMFLOAT4X4 mView;
-		DirectX::XMFLOAT4X4 mProjection;
+		MatrixBuffer() : mView(), mProjection() {};
+		DirectX::XMFLOAT4X4* mView;
+		DirectX::XMFLOAT4X4* mProjection;
 	};
 
 	struct MatrixConstantBuffer

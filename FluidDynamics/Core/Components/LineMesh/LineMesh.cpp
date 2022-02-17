@@ -117,7 +117,7 @@ LineMesh::~LineMesh()
 {
 }
 
-void LineMesh::setMatricies(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 projection)
+void LineMesh::setMatricies(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection)
 {
 	matrixBuffer.mView = view;
 	matrixBuffer.mProjection = projection;
@@ -127,8 +127,8 @@ void LineMesh::Update(float deltaTime)
 {
 	MatrixConstantBuffer cb;
 	cb.mWorld = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(static_cast<GameObject*>(getParent())->getTransform()->getWorld()));
-	cb.mView = DirectX::XMMatrixTranspose(XMLoadFloat4x4(&matrixBuffer.mView));
-	cb.mProjection = DirectX::XMMatrixTranspose(XMLoadFloat4x4(&matrixBuffer.mProjection));
+	cb.mView = DirectX::XMMatrixTranspose(XMLoadFloat4x4(matrixBuffer.mView));
+	cb.mProjection = DirectX::XMMatrixTranspose(XMLoadFloat4x4(matrixBuffer.mProjection));
 
 	direct3D->immediateContext->UpdateSubresource(constantBuffer, 0, nullptr, &cb, 0, 0);
 }

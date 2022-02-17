@@ -165,17 +165,10 @@ HRESULT		InitWorld(int width, int height)
     grid->removeMesh();
     grid->removeMaterial();
     Grid* gridComponent = grid->addComponent<Grid>();
-    gridComponent->setMatrices(*grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridComponent->GenerateGrid<int>(10, 10, 1);
+    gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
+    gridComponent->GenerateGrid<int>(10, 10, 10);
+    grid->getTransform()->setPosition(DirectX::XMFLOAT3(-5, -5, 0));
     gameObjects.emplace_back(grid);
-
-    GameObject* gridVoxel = new GameObject("Grid Voxel");
-    LineMesh* lineMesh = gridVoxel->addComponent<LineMesh>();
-    lineMesh->setMatricies(cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridVoxel->removeMesh();
-    gridVoxel->removeMaterial();
-    gridVoxel->getTransform()->setScale(DirectX::XMFLOAT3(1, 1, 1));
-    gameObjects.emplace_back(gridVoxel);
 
 	return S_OK;
 }
@@ -251,6 +244,70 @@ void Update()
         // Update the cube transform, material etc. 
         gameObjects[i]->update(t, direct3D->immediateContext);
     }
+
+    float scalar = 0.1f;
+
+    if(GetAsyncKeyState(VK_UP))
+    {
+        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
+                                                                camera->getTransform()->getPosition().x, 
+                                                                camera->getTransform()->getPosition().y + scalar,
+                                                                camera->getTransform()->getPosition().z
+                                                             )
+                                            );
+    }
+
+
+    if (GetAsyncKeyState(VK_DOWN))
+    {
+        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
+            camera->getTransform()->getPosition().x,
+            camera->getTransform()->getPosition().y - scalar,
+            camera->getTransform()->getPosition().z
+        )
+        );
+    }
+
+    if (GetAsyncKeyState(VK_LEFT))
+    {
+        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
+            camera->getTransform()->getPosition().x - scalar,
+            camera->getTransform()->getPosition().y,
+            camera->getTransform()->getPosition().z
+        )
+        );
+    }
+
+
+    if (GetAsyncKeyState(VK_RIGHT))
+    {
+        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
+            camera->getTransform()->getPosition().x + scalar,
+            camera->getTransform()->getPosition().y,
+            camera->getTransform()->getPosition().z
+        )
+        );
+    }
+
+    if (GetAsyncKeyState(VK_NEXT))
+    {
+        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
+            camera->getTransform()->getPosition().x,
+            camera->getTransform()->getPosition().y,
+            camera->getTransform()->getPosition().z - scalar
+        )
+        );
+    }
+
+    if (GetAsyncKeyState(VK_PRIOR))
+    {
+        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
+            camera->getTransform()->getPosition().x,
+            camera->getTransform()->getPosition().y,
+            camera->getTransform()->getPosition().z + scalar
+        )
+        );
+    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -268,8 +325,8 @@ void Render()
 
     Camera* camComponent = camera->getComponent<Camera>();
 
-    XMFLOAT4X4 floatView = camComponent->getViewMatrix();
-    XMFLOAT4X4 floatProj = camComponent->getProjectionMatrix();
+    XMFLOAT4X4 floatView = *camComponent->getViewMatrix();
+    XMFLOAT4X4 floatProj = *camComponent->getProjectionMatrix();
 
     // Render the cube
     direct3D->immediateContext->VSSetConstantBuffers(0, 1, &matrixConstBuffer);

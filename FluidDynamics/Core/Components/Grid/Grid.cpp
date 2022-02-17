@@ -6,7 +6,6 @@ Grid::Grid() : matrixBuffer()
 {
 	direct3D = D3D::getInstance();
 	this->setType(ComponentTypes::Grid);
-	this->setRenderable(false);
 
 	// Create the constant buffer
 	D3D11_BUFFER_DESC bd = {};
@@ -23,7 +22,7 @@ Grid::~Grid()
 {
 }
 
-void Grid::setMatrices(DirectX::XMFLOAT4X4 world, DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 projection)
+void Grid::setMatrices(DirectX::XMFLOAT4X4* world, DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection)
 {
 	
 	matrixBuffer.mWorld = world;
@@ -31,14 +30,27 @@ void Grid::setMatrices(DirectX::XMFLOAT4X4 world, DirectX::XMFLOAT4X4 view, Dire
 	matrixBuffer.mProjection = projection;
 }
 
+void Grid::Render()
+{
+	// Loop through all cubes in our grid and render them since they will not render on their own.
+	for(int i = 0; i < gridObjects.size(); i++)
+	{
+		gridObjects[i]->draw(direct3D->immediateContext);
+	}
+}
+
 void Grid::Update(float deltaTime)
 {
-	UNREFERENCED_PARAMETER(deltaTime);
+	// Loop through all cubes in our grid and render them since they will not render on their own.
+	for (int i = 0; i < gridObjects.size(); i++)
+	{
+		gridObjects[i]->update(deltaTime, direct3D->immediateContext);
+	}
 
 	MatrixConstantBuffer cb;
 	cb.mWorld = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(static_cast<GameObject*>(getParent())->getTransform()->getWorld()));
-	cb.mView = DirectX::XMMatrixTranspose(XMLoadFloat4x4(&matrixBuffer.mView));
-	cb.mProjection = DirectX::XMMatrixTranspose(XMLoadFloat4x4(&matrixBuffer.mProjection));
+	cb.mView = DirectX::XMMatrixTranspose(XMLoadFloat4x4(matrixBuffer.mView));
+	cb.mProjection = DirectX::XMMatrixTranspose(XMLoadFloat4x4(matrixBuffer.mProjection));
 
 	direct3D->immediateContext->UpdateSubresource(constantBuffer, 0, nullptr, &cb, 0, 0);
 }

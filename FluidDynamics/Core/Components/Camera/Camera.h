@@ -10,8 +10,8 @@ public:
 
 	void setTransfrom(Transform* trans);
 	void updateProjection(int width, int height);
-	DirectX::XMFLOAT4X4 getViewMatrix() { return viewMatrix; };
-	DirectX::XMFLOAT4X4 getProjectionMatrix() { return projectionMatrix; };
+	DirectX::XMFLOAT4X4* getViewMatrix() { return &viewMatrix; };
+	DirectX::XMFLOAT4X4* getProjectionMatrix() { return &projectionMatrix; };
 
 	void Update(float deltaTime);
 	void Render() {};
