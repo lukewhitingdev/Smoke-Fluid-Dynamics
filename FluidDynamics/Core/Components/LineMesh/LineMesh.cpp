@@ -7,44 +7,8 @@ LineMesh::LineMesh()
 	direct3D = D3D::getInstance();
 	this->setType(ComponentTypes::LineMesh);
 
-	Instance* instances;
-	instances = new Instance[instanceCount];
-
-	// TODO: Move this into the grid part or another part of the program.
-	// TODO: Make it so that we can define the space in which we are simulating and the particle size and we will sub-divide the space into particle sized divisions.
-	// Something like Space.xyz / Particle.xyz is the number of particles && the scale of the particles?.
-
-	int index = 0;
-	for(int x = 0; x < 50; x++)
-	{
-		for(int y = 0; y < 50; y++)
-		{
-			for(int z = 0; z < 50; z++)
-			{
-				instances[index].position = DirectX::XMFLOAT3(x, y, z);
-				index++;
-			}
-		}
-	}
-	
-	// Setup instance buffer.
-	D3D11_BUFFER_DESC bd = {};
-	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(Instance) * instanceCount;
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA instData = {};
-	ZeroMemory(&instData, sizeof(D3D11_SUBRESOURCE_DATA));
-	instData.pSysMem = instances;
-
-	if (FAILED(direct3D->device->CreateBuffer(&bd, &instData, &instanceBuffer)))
-		throw;
-
-	delete[] instances;
-
 	// Create the constant buffer
-	bd = {};
+	D3D11_BUFFER_DESC bd = {};
 	bd.CPUAccessFlags = 0;
 	bd.Usage = D3D11_USAGE_DEFAULT;
 	bd.ByteWidth = sizeof(MatrixConstantBuffer);
@@ -142,7 +106,7 @@ LineMesh::LineMesh()
 	};
 
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * 36;
+	bd.ByteWidth = sizeof(WORD) * 19;
 	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	InitData.pSysMem = indices;
@@ -158,6 +122,46 @@ void LineMesh::setMatricies(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* proj
 {
 	matrixBuffer.view = view;
 	matrixBuffer.projection = projection;
+}
+
+void LineMesh::createInstancedGrid(int width, int height, int depth)
+{
+	instanceCount = width * height * depth;
+	Instance* instances;
+	instances = new Instance[instanceCount];
+
+	// TODO: Move this into the grid part or another part of the program.
+	// TODO: Make it so that we can define the space in which we are simulating and the particle size and we will sub-divide the space into particle sized divisions.
+	// Something like Space.xyz / Particle.xyz is the number of particles && the scale of the particles?.
+
+	int index = 0;
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int z = 0; z < depth; z++)
+			{
+				instances[index].position = DirectX::XMFLOAT3(x, y, z);
+				index++;
+			}
+		}
+	}
+
+	// Setup instance buffer.
+	D3D11_BUFFER_DESC bd = {};
+	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(Instance) * instanceCount;
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA instData = {};
+	ZeroMemory(&instData, sizeof(D3D11_SUBRESOURCE_DATA));
+	instData.pSysMem = instances;
+
+	if (FAILED(direct3D->device->CreateBuffer(&bd, &instData, &instanceBuffer)))
+		throw;
+
+	delete[] instances;
 }
 
 void LineMesh::Update(float deltaTime)

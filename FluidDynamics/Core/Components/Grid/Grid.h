@@ -20,31 +20,13 @@ public:
 	{
 		const long long vertexBufferSize = Xmax * Ymax * Zmax;
 
-		//GameObject* object = new GameObject();
-		//LineMesh* lineMesh = object->addComponent<LineMesh>();
-		//lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
-		//object->removeMesh();
-		//object->removeMaterial();
-		//object->getTransform()->setScale(DirectX::XMFLOAT3(Xmax, Ymax, Zmax));
-		//gridObjects.emplace_back(object);
-
-		// For Generating Sub-Divided grids, really slow, optimize this if needed.
-		for(int x = 0; x < Xmax; x++)
-		{
-			for(int y = 0; y < Ymax; y++)
-			{
-				for(int z = 0; z < Zmax; z++)
-				{
-					GameObject* object = new GameObject();
-					LineMesh* lineMesh = object->addComponent<LineMesh>();
-					lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
-					object->getTransform()->setPosition(DirectX::XMFLOAT3(x, y, z));
-					object->removeMesh();
-					object->removeMaterial();
-					gridObjects.emplace_back(object);
-				}
-			}
-		}
+		GameObject* object = new GameObject();
+		LineMesh* lineMesh = object->addComponent<LineMesh>();
+		lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
+		lineMesh->createInstancedGrid(Xmax, Ymax, Zmax);
+		object->removeMesh();
+		object->removeMaterial();
+		gridObjects.emplace_back(object);
 	};
 
 	void Render();

@@ -12,6 +12,9 @@ public:
 
 	void setMatricies(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection);
 
+	void createInstancedGrid(int width, int height, int depth);
+	void setInstanceSize(int size) { instanceCount = size; };
+
 	void Render();
 	void Update(float deltaTime);
 
