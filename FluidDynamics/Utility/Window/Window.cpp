@@ -1,5 +1,6 @@
 #include "Utility/Window/Headers/Window.h"
 #include "Utility/Direct3D/Headers/D3D.h"
+#include "Utility/Input System/InputSystem.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 //--------------------------------------------------------------------------------------
@@ -7,45 +8,62 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 //--------------------------------------------------------------------------------------
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static bool lockCursor;
+
     PAINTSTRUCT ps;
     HDC hdc;
 
 
     switch (message)
     {
-    case WM_LBUTTONDOWN:
-    {
-        //int xPos = GET_X_LPARAM(lParam);
-        //int yPos = GET_Y_LPARAM(lParam);
-        break;
-    }
-    case WM_PAINT:
-        hdc = BeginPaint(hWnd, &ps);
-        EndPaint(hWnd, &ps);
-        break;
+        case WM_RBUTTONDOWN:
+            lockCursor = true;
+            break;
 
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
+        case WM_RBUTTONUP:
+            lockCursor = false;
+            break;
 
-    case WM_SIZE:
 
-        switch (wParam) 
+        case WM_MOUSEMOVE:
         {
-            case SIZE_MAXIMIZED:
-                D3D::getInstance()->OnResize();
-                break;
+            int xPos = GET_X_LPARAM(lParam);
+            int yPos = GET_Y_LPARAM(lParam);
 
-            case SIZE_RESTORED:
-                D3D::getInstance()->OnResize();
-                break;
+            if(lockCursor)
+            {
+                InputSystem::setMousePosition(xPos, yPos);
+            }
 
-            default:
-                break;
+            break;
         }
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        case WM_PAINT:
+            hdc = BeginPaint(hWnd, &ps);
+            EndPaint(hWnd, &ps);
+            break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+
+        case WM_SIZE:
+
+            switch (wParam) 
+            {
+                case SIZE_MAXIMIZED:
+                    D3D::getInstance()->OnResize();
+                    break;
+
+                case SIZE_RESTORED:
+                    D3D::getInstance()->OnResize();
+                    break;
+
+                default:
+                    break;
+            }
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
     }
 
     return 0;
@@ -90,7 +108,7 @@ HRESULT Window::InitWindow(HINSTANCE hInstance, int nCmdShow)
     viewHeight = 720;
 
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-    windowHandle = CreateWindow(L"WindowClass", L"Fluid Dynamics",
+    windowHandle = CreateWindow(L"WindowClass", L"Workshop Engine",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
         nullptr);
