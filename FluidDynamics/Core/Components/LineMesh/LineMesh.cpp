@@ -141,8 +141,11 @@ void LineMesh::createInstancedGrid(int width, int height, int depth)
 		{
 			for (int z = 0; z < depth; z++)
 			{
-				instances[index].position = DirectX::XMFLOAT3(x, y, z);
-				index++;
+				if(index < instanceCount)
+				{
+					instances[index].position = DirectX::XMFLOAT3(float(x), float(y), float(z));
+					index++;
+				}
 			}
 		}
 	}
@@ -166,6 +169,8 @@ void LineMesh::createInstancedGrid(int width, int height, int depth)
 
 void LineMesh::Update(float deltaTime)
 {
+	UNREFERENCED_PARAMETER(deltaTime);
+
 	MatrixConstantBuffer cb;
 	cb.mWorld = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(static_cast<GameObject*>(getParent())->getTransform()->getWorld()));
 	cb.mView = DirectX::XMMatrixTranspose(XMLoadFloat4x4(matrixBuffer.view));

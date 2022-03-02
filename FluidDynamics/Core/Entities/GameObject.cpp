@@ -35,10 +35,8 @@ void GameObject::setPosition(XMFLOAT3 position)
 	transform->setPosition(position);
 }
 
-void GameObject::update(float t, ID3D11DeviceContext* pContext)
+void GameObject::update(float deltaTime)
 {
-	UNREFERENCED_PARAMETER(pContext);
-
 	if(this->updateable)
 	{
 		for (auto it = components.begin(); it != components.end(); it++)
@@ -49,14 +47,14 @@ void GameObject::update(float t, ID3D11DeviceContext* pContext)
 				Component* component = componentVector->at(i);
 				if (component->getUpdatable())
 				{
-					component->Update(t);
+					component->Update(deltaTime);
 				}
 			}
 		}
 	}
 }
 
-void GameObject::draw(ID3D11DeviceContext* pContext)
+void GameObject::draw()
 {
 	if(this->renderable)
 	{

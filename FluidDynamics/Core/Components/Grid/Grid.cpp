@@ -35,7 +35,7 @@ void Grid::Render()
 	// Loop through all cubes in our grid and render them since they will not render on their own.
 	for(int i = 0; i < gridObjects.size(); i++)
 	{
-		gridObjects[i]->draw(direct3D->immediateContext);
+		gridObjects[i]->draw();
 	}
 }
 
@@ -44,7 +44,7 @@ void Grid::Update(float deltaTime)
 	// Loop through all cubes in our grid and render them since they will not render on their own.
 	for (int i = 0; i < gridObjects.size(); i++)
 	{
-		gridObjects[i]->update(deltaTime, direct3D->immediateContext);
+		gridObjects[i]->update(deltaTime);
 	}
 
 	MatrixConstantBuffer cb;

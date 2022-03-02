@@ -17,6 +17,8 @@ Transform::~Transform()
 
 void Transform::Update(float deltaTime)
 {
+	UNREFERENCED_PARAMETER(deltaTime);
+
 	//rotation.y += deltaTime;
 	//rotation.z += deltaTime / 2;
 

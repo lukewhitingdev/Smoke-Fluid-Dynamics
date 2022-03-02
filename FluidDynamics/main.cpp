@@ -243,7 +243,7 @@ void Update()
     for (int i = 0; i < gameObjects.size(); i++)
     {
         // Update the cube transform, material etc. 
-        gameObjects[i]->update(t, direct3D->immediateContext);
+        gameObjects[i]->update(t);
     }
 }
 
@@ -279,7 +279,7 @@ void Render()
         cb.mProjection = XMMatrixTranspose(XMLoadFloat4x4(floatProj));
         direct3D->immediateContext->UpdateSubresource(matrixConstBuffer, 0, nullptr, &cb, 0, 0);
 
-        gameObjects[i]->draw(direct3D->immediateContext);
+        gameObjects[i]->draw();
     }
 
     // Present our back buffer to our front buffer

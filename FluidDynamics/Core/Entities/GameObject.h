@@ -22,9 +22,9 @@ public:
 
 	void cleanup();
 
-	void								update(float t, ID3D11DeviceContext* pContext);
-	void								draw(ID3D11DeviceContext* pContext);
-	XMFLOAT4X4*							getWorld() { return transform->getWorld(); }
+	void update(float deltaTime);
+	void draw();
+	XMFLOAT4X4*	getWorld() { return transform->getWorld(); }
 	Transform* getTransform() { return transform; }
 	void removeMesh() { this->removeComponent<Mesh>(); mesh = nullptr; };
 	void removeMaterial() { this->removeComponent<Material>(); material = nullptr; };

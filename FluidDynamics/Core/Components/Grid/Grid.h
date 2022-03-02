@@ -18,7 +18,7 @@ public:
 	template<typename T>
 	void GenerateGrid(const int Xmax, const int Ymax, const int Zmax) 
 	{
-		const long long vertexBufferSize = Xmax * Ymax * Zmax;
+		const unsigned long vertexBufferSize = Xmax * Ymax * Zmax;
 
 		GameObject* object = new GameObject();
 		LineMesh* lineMesh = object->addComponent<LineMesh>();

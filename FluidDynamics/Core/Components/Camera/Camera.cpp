@@ -3,14 +3,11 @@
 #include "Utility/Input System/InputSystem.h"
 #include "Utility/Math/Math.h"
 
-Camera::Camera() : projectionMatrix(XMFLOAT4X4()), viewMatrix(XMFLOAT4X4()), transform(nullptr), position(nullptr), defaultUp(XMFLOAT3())
+Camera::Camera() : projectionMatrix(), viewMatrix(), rotation(), 
+				   defaultForward(DirectX::XMFLOAT3(0, 0, 1)), defaultRight(DirectX::XMFLOAT3(1, 0, 0)), defaultUp(DirectX::XMFLOAT3(0, 1, 0)),
+				   forward(), right(), up(), target(), transform(), position()
 {
-	defaultForward = DirectX::XMFLOAT3(0, 0, 1);
-	defaultRight = DirectX::XMFLOAT3(1, 0, 0);
-	defaultUp = DirectX::XMFLOAT3(0, 1, 0);
-
 	DirectX::XMFLOAT3 tempPosition = DirectX::XMFLOAT3(0, 0, 0);
-
 	XMStoreFloat4x4(&viewMatrix, DirectX::XMMatrixLookAtLH(XMLoadFloat3(&tempPosition), XMLoadFloat3(&defaultForward), XMLoadFloat3(&defaultUp)));
 
 	this->setType(ComponentTypes::Camera);
