@@ -1,21 +1,19 @@
 #include "Camera.h"
 #include "Core/Entities/GameObject.h"
+#include "Utility/Input System/InputSystem.h"
+#include "Utility/Math/Math.h"
 
-Camera::Camera() : projectionMatrix(XMFLOAT4X4()), viewMatrix(XMFLOAT4X4()), transform(nullptr), eye(XMFLOAT3()), at(XMFLOAT3()), up(XMFLOAT3())
+Camera::Camera() : projectionMatrix(XMFLOAT4X4()), viewMatrix(XMFLOAT4X4()), transform(nullptr), position(nullptr), defaultUp(XMFLOAT3())
 {
-	// Initialize the view matrix
-	eye = DirectX::XMFLOAT3(0, 0, -3);
-	at = DirectX::XMFLOAT3(0, 0, 0);
-	up = DirectX::XMFLOAT3(0, 1, 0);
+	defaultForward = DirectX::XMFLOAT3(0, 0, 1);
+	defaultRight = DirectX::XMFLOAT3(1, 0, 0);
+	defaultUp = DirectX::XMFLOAT3(0, 1, 0);
 
-	XMFLOAT4 Eye = XMFLOAT4(eye.x, eye.y, eye.z, 1);
-	XMFLOAT4 At = XMFLOAT4(at.x, at.y, at.z, 1);
-	XMFLOAT4 Up = XMFLOAT4(up.x, up.y, up.z, 1);
+	DirectX::XMFLOAT3 tempPosition = DirectX::XMFLOAT3(0, 0, 0);
 
-	XMStoreFloat4x4(&viewMatrix, DirectX::XMMatrixLookAtLH(XMLoadFloat4(&Eye), XMLoadFloat4(&At), XMLoadFloat4(&Up)));
+	XMStoreFloat4x4(&viewMatrix, DirectX::XMMatrixLookAtLH(XMLoadFloat3(&tempPosition), XMLoadFloat3(&defaultForward), XMLoadFloat3(&defaultUp)));
 
 	this->setType(ComponentTypes::Camera);
-	this->setRenderable(false);
 }
 
 Camera::~Camera()
@@ -25,6 +23,8 @@ Camera::~Camera()
 void Camera::setTransfrom(Transform* trans)
 {
 	transform = trans;
+	delete position;
+	position = transform->getPosition();
 }
 
 void Camera::updateProjection(int width, int height)
@@ -37,10 +37,53 @@ void Camera::Update(float deltaTime)
 {
 	UNREFERENCED_PARAMETER(deltaTime);
 
-	eye = transform->getPosition();
 
-	XMFLOAT4 Eye = XMFLOAT4(eye.x, eye.y, eye.z, 1);
-	XMFLOAT4 At = XMFLOAT4(at.x, at.y, at.z, 1);
-	XMFLOAT4 Up = XMFLOAT4(up.x, up.y, up.z, 1);
-	XMStoreFloat4x4(&viewMatrix,XMMatrixLookAtLH(XMLoadFloat4(&Eye), XMLoadFloat4(&At), XMLoadFloat4(&Up)));
+	// Mouse Look.
+	InputSystem::Mouse currMousePos = InputSystem::getMousePosition();
+	static InputSystem::Mouse prevMouse;
+	if(prevMouse.x != currMousePos.x || prevMouse.y != currMousePos.y)
+	{
+		prevMouse = currMousePos;
+		InputSystem::Mouse lastMousePos = InputSystem::getLastMousePosition();
+
+		yaw += (lastMousePos.x - currMousePos.x) * deltaTime;
+		pitch += (lastMousePos.y - currMousePos.y) * deltaTime;
+
+		pitch = Math::clamp(pitch, -1.5f, 1.5f);
+	}
+
+	XMStoreFloat4x4(&rotation, XMMatrixRotationRollPitchYaw(pitch, yaw, 0));
+	XMStoreFloat3(&target, XMVector3TransformCoord(XMLoadFloat3(&defaultForward), XMLoadFloat4x4(&rotation)));
+	XMStoreFloat3(&right, XMVector3Normalize(XMVector3TransformCoord(XMLoadFloat3(&defaultRight), XMLoadFloat4x4(&rotation))));
+	XMStoreFloat3(&forward, XMVector3Normalize(XMVector3TransformCoord(XMLoadFloat3(&defaultForward), XMLoadFloat4x4(&rotation))));
+	XMStoreFloat3(&up, XMVector3Cross(XMLoadFloat3(&forward), XMLoadFloat3(&right)));
+
+	DirectX::XMVECTOR posVec = XMLoadFloat3(position);
+
+	// Movement.
+	int speed = 10;
+
+	if (GetAsyncKeyState(VK_UP))
+	{
+		posVec += (speed * deltaTime) * XMLoadFloat3(&forward);
+	}
+
+	if (GetAsyncKeyState(VK_DOWN))
+	{
+		posVec -= (speed * deltaTime) * XMLoadFloat3(&forward);
+	}
+
+	if (GetAsyncKeyState(VK_LEFT))
+	{
+		posVec -= (speed * deltaTime) * XMLoadFloat3(&right);
+	}
+
+	if (GetAsyncKeyState(VK_RIGHT))
+	{
+		posVec += (speed * deltaTime) * XMLoadFloat3(&right);
+	}
+
+	XMStoreFloat4x4(&viewMatrix,XMMatrixLookToLH(posVec, XMLoadFloat3(&target), XMLoadFloat3(&up)));
+
+	XMStoreFloat3(position, posVec);
 }

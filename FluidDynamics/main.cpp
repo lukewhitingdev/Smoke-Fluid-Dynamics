@@ -153,6 +153,7 @@ HRESULT		InitWorld(int width, int height)
 
     camera = new GameObject("Camera");
     camera->setRenderable(false);
+    camera->setUpdateable(true);
     Camera* cam = camera->addComponent<Camera>();
     cam->setTransfrom(camera->getTransform());
     camera->setPosition(DirectX::XMFLOAT3(0.0f, 0.0f, -3.0f));
@@ -166,7 +167,7 @@ HRESULT		InitWorld(int width, int height)
     grid->removeMaterial();
     Grid* gridComponent = grid->addComponent<Grid>();
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridComponent->GenerateGrid<int>(1, 1, 1);
+    gridComponent->GenerateGrid<int>(2, 2, 1);
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(-50, -50, 0));
     gameObjects.emplace_back(grid);
 
@@ -244,70 +245,6 @@ void Update()
         // Update the cube transform, material etc. 
         gameObjects[i]->update(t, direct3D->immediateContext);
     }
-
-    float scalar = 0.1f;
-
-    if(GetAsyncKeyState(VK_UP))
-    {
-        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
-                                                                camera->getTransform()->getPosition().x, 
-                                                                camera->getTransform()->getPosition().y + scalar,
-                                                                camera->getTransform()->getPosition().z
-                                                             )
-                                            );
-    }
-
-
-    if (GetAsyncKeyState(VK_DOWN))
-    {
-        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
-            camera->getTransform()->getPosition().x,
-            camera->getTransform()->getPosition().y - scalar,
-            camera->getTransform()->getPosition().z
-        )
-        );
-    }
-
-    if (GetAsyncKeyState(VK_LEFT))
-    {
-        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
-            camera->getTransform()->getPosition().x - scalar,
-            camera->getTransform()->getPosition().y,
-            camera->getTransform()->getPosition().z
-        )
-        );
-    }
-
-
-    if (GetAsyncKeyState(VK_RIGHT))
-    {
-        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
-            camera->getTransform()->getPosition().x + scalar,
-            camera->getTransform()->getPosition().y,
-            camera->getTransform()->getPosition().z
-        )
-        );
-    }
-
-    if (GetAsyncKeyState(VK_NEXT))
-    {
-        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
-            camera->getTransform()->getPosition().x,
-            camera->getTransform()->getPosition().y,
-            camera->getTransform()->getPosition().z - scalar
-        )
-        );
-    }
-
-    if (GetAsyncKeyState(VK_PRIOR))
-    {
-        camera->getTransform()->setPosition(DirectX::XMFLOAT3(
-            camera->getTransform()->getPosition().x,
-            camera->getTransform()->getPosition().y,
-            camera->getTransform()->getPosition().z + scalar
-        )
-        );
-    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -325,8 +262,8 @@ void Render()
 
     Camera* camComponent = camera->getComponent<Camera>();
 
-    XMFLOAT4X4 floatView = *camComponent->getViewMatrix();
-    XMFLOAT4X4 floatProj = *camComponent->getProjectionMatrix();
+    XMFLOAT4X4* floatView = camComponent->getViewMatrix();
+    XMFLOAT4X4* floatProj = camComponent->getProjectionMatrix();
 
     // Render the cube
     direct3D->immediateContext->VSSetConstantBuffers(0, 1, &matrixConstBuffer);
@@ -338,8 +275,8 @@ void Render()
         XMMATRIX mGO = XMLoadFloat4x4(gameObjects[i]->getWorld());
 
         cb.mWorld = XMMatrixTranspose(mGO);
-        cb.mView = XMMatrixTranspose(XMLoadFloat4x4(&floatView));
-        cb.mProjection = XMMatrixTranspose(XMLoadFloat4x4(&floatProj));
+        cb.mView = XMMatrixTranspose(XMLoadFloat4x4(floatView));
+        cb.mProjection = XMMatrixTranspose(XMLoadFloat4x4(floatProj));
         direct3D->immediateContext->UpdateSubresource(matrixConstBuffer, 0, nullptr, &cb, 0, 0);
 
         gameObjects[i]->draw(direct3D->immediateContext);

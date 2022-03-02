@@ -12,7 +12,7 @@ public:
 
 	void setPosition(DirectX::XMFLOAT3 val) { position = val; };
 	void setScale(DirectX::XMFLOAT3 val) { scale = val; }
-	DirectX::XMFLOAT3 getPosition() { return position; }
+	DirectX::XMFLOAT3* getPosition() { return &position; }
 	DirectX::XMFLOAT4X4* getWorld() { return &world; };
 
 private:

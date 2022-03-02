@@ -373,6 +373,8 @@
     <ClCompile Include="Core\Components\Mesh\Mesh.cpp" />
     <ClCompile Include="Core\Components\Material\Material.cpp" />
     <ClCompile Include="Utility\Direct3D\D3D.cpp" />
+    <ClCompile Include="Utility\Input System\InputSystem.cpp" />
+    <ClCompile Include="Utility\Math\Math.cpp" />
     <ClCompile Include="Utility\Time\Time.cpp" />
     <ClCompile Include="Utility\Window\Window.cpp" />
   </ItemGroup>
@@ -390,6 +392,8 @@
     <ClInclude Include="Core\Components\Material\Material.h" />
     <ClInclude Include="Core\Components\Transform\Transform.h" />
     <ClInclude Include="Utility\Direct3D\Headers\D3D.h" />
+    <ClInclude Include="Utility\Input System\InputSystem.h" />
+    <ClInclude Include="Utility\Math\Math.h" />
     <ClInclude Include="Utility\Shader\ShaderUtility.h" />
     <ClInclude Include="Core\structures.h" />
     <ClInclude Include="Core\Components\Test\TestComponent.h" />
