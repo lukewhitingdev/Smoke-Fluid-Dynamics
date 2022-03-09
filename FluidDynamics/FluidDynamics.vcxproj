@@ -362,6 +362,7 @@
     <Image Include="Resources\stone.dds" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\Components\CFD\Grid\CFDGrid.cpp" />
     <ClCompile Include="Core\Components\Camera\Camera.cpp" />
     <ClCompile Include="Dependencies\Textures\DDSTextureLoader.cpp" />
     <ClCompile Include="Core\Entities\GameObject.cpp" />
@@ -379,6 +380,7 @@
     <ClCompile Include="Utility\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\Components\CFD\Grid\CFDGrid.h" />
     <ClInclude Include="Core\Components\Camera\Camera.h" />
     <ClInclude Include="Core\Entity System\Component.h" />
     <ClInclude Include="Core\Entity System\ComponentTypes.h" />

@@ -29,6 +29,19 @@ void Grid::setMatrices(DirectX::XMFLOAT4X4* world, DirectX::XMFLOAT4X4* view, Di
 	matrixBuffer.mProjection = projection;
 }
 
+void Grid::GenerateGrid(const int Xmax, const int Ymax, const int Zmax)
+{
+	const unsigned long vertexBufferSize = Xmax * Ymax * Zmax;
+
+	GameObject* object = new GameObject();
+	LineMesh* lineMesh = object->addComponent<LineMesh>();
+	lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
+	lineMesh->createInstancedGrid(Xmax, Ymax, Zmax);
+	object->removeMesh();
+	object->removeMaterial();
+	gridObjects.emplace_back(object);
+}
+
 void Grid::Render()
 {
 	// Loop through all cubes in our grid and render them since they will not render on their own.

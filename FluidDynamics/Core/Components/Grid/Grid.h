@@ -15,19 +15,7 @@ public:
 
 	void setMatrices(DirectX::XMFLOAT4X4* world, DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection);
 
-	template<typename T>
-	void GenerateGrid(const int Xmax, const int Ymax, const int Zmax) 
-	{
-		const unsigned long vertexBufferSize = Xmax * Ymax * Zmax;
-
-		GameObject* object = new GameObject();
-		LineMesh* lineMesh = object->addComponent<LineMesh>();
-		lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
-		lineMesh->createInstancedGrid(Xmax, Ymax, Zmax);
-		object->removeMesh();
-		object->removeMaterial();
-		gridObjects.emplace_back(object);
-	};
+	void GenerateGrid(const int Xmax, const int Ymax, const int Zmax);
 
 	void Render();
 	void Update(float deltaTime);
