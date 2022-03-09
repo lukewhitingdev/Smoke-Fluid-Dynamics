@@ -25,6 +25,7 @@
 #include <Core/Components/Camera/Camera.h>
 #include <Core/Components/Grid/Grid.h>
 #include <Core/Components/LineMesh/LineMesh.h>
+#include <Core/Components/CFD/Grid/CFDGrid.h>
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -166,8 +167,18 @@ HRESULT		InitWorld(int width, int height)
     grid->removeMesh();
     grid->removeMaterial();
     Grid* gridComponent = grid->addComponent<Grid>();
+    CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
+    
+    int w = 5;
+    int h = 5;
+    int d = 5;
+
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridComponent->GenerateGrid<int>(5, 5, 1);
+    gridComponent->GenerateGrid(w, h, d);
+
+    CFD->setGrid(w, h, d);
+    CFD::CFDVoxel* voxel = CFD->getVoxel(2, 2, 2);
+
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     gameObjects.emplace_back(grid);
 
