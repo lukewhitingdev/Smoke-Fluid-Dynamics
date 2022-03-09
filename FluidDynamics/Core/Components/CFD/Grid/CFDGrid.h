@@ -50,8 +50,6 @@ namespace CFD
 
 		// Grid.
 		CFDVoxel* voxels;
-
-
 	};
 }
 

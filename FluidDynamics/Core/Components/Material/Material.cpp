@@ -1,13 +1,25 @@
 #include "Material.h"
 #include <Utility/Shader/ShaderUtility.h>
+#include <string>
 
 Material::Material()
 {
 	direct3D = D3D::getInstance();
 
+	std::string rootDir = SOLUTION_DIR;
+	std::string shader = rootDir + "Resources/Shader.fx";
+	std::string texture = rootDir + "Resources/stone.dds";
+
+	wstring shaderIntermediate = wstring(shader.begin(), shader.end());
+	const WCHAR* shaderPath = shaderIntermediate.c_str();
+
+	wstring textureIntermediate = wstring(texture.begin(), texture.end());
+	const WCHAR* texturePath = textureIntermediate.c_str();
+
+
 	// Compile the pixel shader
 	ID3DBlob* pPSBlob = nullptr;
-	if (FAILED(ShaderUtility::CompileShaderFromFile(L"Resources\\shader.fx", "PS", "ps_4_0", &pPSBlob)))
+	if (FAILED(ShaderUtility::CompileShaderFromFile(shaderPath, "PS", "ps_4_0", &pPSBlob)))
 	{
 		MessageBox(nullptr,
 			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);
@@ -21,7 +33,7 @@ Material::Material()
 	pPSBlob->Release();
 
 	// load and setup textures
-	if (FAILED(CreateDDSTextureFromFile(direct3D->device, L"Resources\\stone.dds", nullptr, &textureResourceView)))
+	if (FAILED(CreateDDSTextureFromFile(direct3D->device, texturePath, nullptr, &textureResourceView)))
 		throw;
 
 	D3D11_SAMPLER_DESC sampDesc;

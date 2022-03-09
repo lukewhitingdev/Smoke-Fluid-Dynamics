@@ -1,14 +1,22 @@
 #include "Mesh.h"
 #include "Utility/Shader/ShaderUtility.h"
+#include <xstring>
+#include <string>
 
 Mesh::Mesh()
 {
 	direct3D = D3D::getInstance();
 	this->setType(ComponentTypes::Mesh);
 
+	std::string rootDir = SOLUTION_DIR;
+	std::string shader = rootDir + "Resources/Shader.fx";
+
+	std::wstring shaderIntermediate = std::wstring(shader.begin(), shader.end());
+	const WCHAR* shaderPath = shaderIntermediate.c_str();
+
 
 	ID3DBlob* pVSBlob = nullptr;
-	if (FAILED(ShaderUtility::CompileShaderFromFile(L"Resources\\shader.fx", "VS", "vs_4_0", &pVSBlob)))
+	if (FAILED(ShaderUtility::CompileShaderFromFile(shaderPath, "VS", "vs_4_0", &pVSBlob)))
 	{
 		MessageBox(nullptr,
 			L"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", L"Error", MB_OK);

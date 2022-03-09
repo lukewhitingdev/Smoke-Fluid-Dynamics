@@ -17,7 +17,9 @@ public:
 	void Render() {};
 
 	void setYaw(float value) { yaw = value; };
+	float getYaw() { return yaw; };
 	void setPitch(float value) { pitch = value; };
+	float getPitch() { return pitch; };
 
 private:
 
