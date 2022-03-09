@@ -24,7 +24,6 @@ Grid::~Grid()
 
 void Grid::setMatrices(DirectX::XMFLOAT4X4* world, DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection)
 {
-	
 	matrixBuffer.mWorld = world;
 	matrixBuffer.mView = view;
 	matrixBuffer.mProjection = projection;

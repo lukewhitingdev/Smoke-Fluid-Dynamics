@@ -143,7 +143,7 @@ void LineMesh::createInstancedGrid(int width, int height, int depth)
 			{
 				if(index < instanceCount)
 				{
-					instances[index].position = DirectX::XMFLOAT3(float(x), float(y), float(z));
+					instances[index].position = DirectX::XMFLOAT3(float(x - (width / 2)), float(y - (height / 2)), float(z - (depth / 2)));
 					index++;
 				}
 			}
