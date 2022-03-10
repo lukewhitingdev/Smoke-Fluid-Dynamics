@@ -1,12 +1,26 @@
 #pragma once
 #include "Core/Entity System/Component.h"
 #include <vector>
+#include <DirectXMath.h>
 
 namespace CFD
 {
+
+	struct Density
+	{
+		Density(int x, int y, int z, float density) : x(x), y(y), z(z), value(density) {};
+		Density(int x, int y, int z) : x(x), y(y), z(z), value() {};
+		Density() : x(), y(), z(), value() {};
+		int x, y, z;
+		float value;
+	};
+
+
 	struct CFDData
 	{
-		CFDData() {};
+		CFDData() : density() {};
+
+		float density;
 	};
 
 	struct CFDVoxel
@@ -35,8 +49,23 @@ namespace CFD
 		void Update(float deltaTime);
 		void Render() {};
 
+		// Adds a density source to the grid.
+		void addDensitySource(int x, int y, int z);
+
+		// Adds a density source to the grid.
+		void addDensitySource(int x, int y, int z, float density);
+
+		// Return the density value at a given position on the grid.
+		float getDensity(int x, int y, int z);
+
 	private:
 
+		// Updates the densities of specified voxels within the grid.
+		void updateDensitySources(float deltaTime);
+
+		std::vector<Density> densities;
+
+		// Gets the index of a specified x,y,z position in a 1D array.
 		long long getIndex(int x, int y, int z)
 		{
 			return width * height * z + height * y + x;
