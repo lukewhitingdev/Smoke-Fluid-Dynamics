@@ -107,7 +107,7 @@ TEST(CFDGrid, getVoxelInvalid) {
 
 	CFD::CFDVoxel* voxel = grid->getVoxel(targetx, targety, targetz);
 
-	EXPECT_TRUE(voxel == nullptr) << "Voxel could not be found!";
+	EXPECT_TRUE(voxel == nullptr);
 }
 
 TEST(CFDGrid, setDensitySource) {
@@ -120,7 +120,7 @@ TEST(CFDGrid, setDensitySource) {
 	int x = 5;
 	int y = 5;
 	int z = 5;
-	int value = 10;
+	float value = 10;
 
 	float deltaTime = 0.1f;
 
@@ -145,7 +145,7 @@ TEST(CFDGrid, setDensitySourceInvalid) {
 	int x = 11;
 	int y = 24;
 	int z = 32;
-	int value = 10;
+	float value = 10;
 
 	float deltaTime = 0.1f;
 
