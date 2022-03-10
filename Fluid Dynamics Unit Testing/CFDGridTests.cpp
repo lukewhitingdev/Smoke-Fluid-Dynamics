@@ -60,3 +60,102 @@ TEST(CFDGrid, setGridSize) {
 	EXPECT_EQ(voxel->y, targety) << "Voxel Y Coordinate Incorrect!";
 	EXPECT_EQ(voxel->z, targetz) << "Voxel Z Coordinate Incorrect!";
 }
+
+TEST(CFDGrid, getVoxelValid) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int x = 5;
+	int y = 5;
+	int z = 5;
+
+	int targetx = 2;
+	int targety = 2;
+	int targetz = 4;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(x, y, z);
+
+	CFD::CFDVoxel* voxel = grid->getVoxel(targetx, targety, targetz);
+
+	EXPECT_TRUE(voxel != nullptr) << "Voxel could not be found!";
+	EXPECT_EQ(voxel->x, targetx) << "Voxel X Coordinate Incorrect!";
+	EXPECT_EQ(voxel->y, targety) << "Voxel Y Coordinate Incorrect!";
+	EXPECT_EQ(voxel->z, targetz) << "Voxel Z Coordinate Incorrect!";
+}
+
+TEST(CFDGrid, getVoxelInvalid) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int x = 5;
+	int y = 5;
+	int z = 5;
+
+	int targetx = 10;
+	int targety = 2;
+	int targetz = 4;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(x, y, z);
+
+	CFD::CFDVoxel* voxel = grid->getVoxel(targetx, targety, targetz);
+
+	EXPECT_TRUE(voxel == nullptr) << "Voxel could not be found!";
+}
+
+TEST(CFDGrid, setDensitySource) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int x = 5;
+	int y = 5;
+	int z = 5;
+	int value = 10;
+
+	float deltaTime = 0.1f;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+
+	grid->setGrid(10, 10, 10);
+	grid->addDensitySource(x, y, z, value);
+	grid->Update(deltaTime);
+	float result = grid->getDensity(x, y, z);
+	float expected = value * deltaTime;
+
+	EXPECT_EQ(result, expected);
+}
+
+TEST(CFDGrid, setDensitySourceInvalid) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int x = 11;
+	int y = 24;
+	int z = 32;
+	int value = 10;
+
+	float deltaTime = 0.1f;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+
+	grid->setGrid(10, 10, 10);
+	grid->addDensitySource(x, y, z, value);
+	grid->Update(deltaTime);
+	float result = grid->getDensity(x, y, z);
+	float expected = -1;
+
+	EXPECT_EQ(result, expected);
+}
