@@ -177,7 +177,6 @@ HRESULT		InitWorld(int width, int height)
     gridComponent->GenerateGrid(w, h, d);
 
     CFD->setGrid(w, h, d);
-    CFD::CFDVoxel* voxel = CFD->getVoxel(2, 2, 2);
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     gameObjects.emplace_back(grid);
