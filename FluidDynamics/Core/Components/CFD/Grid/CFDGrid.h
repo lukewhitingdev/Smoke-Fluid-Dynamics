@@ -63,12 +63,30 @@ namespace CFD
 		// Updates the densities of specified voxels within the grid.
 		void updateDensitySources(float deltaTime);
 
+		void updateDiffuse(float deltaTime);
+
 		std::vector<Density> densities;
+		float diffusionRate = 10;
 
 		// Gets the index of a specified x,y,z position in a 1D array.
 		long long getIndex(int x, int y, int z)
 		{
 			return width * height * z + height * y + x;
+		}
+
+		void printGridInfomation()
+		{
+			for(int x = 0; x < width; x++)
+			{
+				for(int y = 0; y < height; y++)
+				{
+					for(int z = 0; z < depth; z++)
+					{
+						CFDVoxel* voxel = this->getVoxel(x, y, z);
+						printf("[%d, %d, %d] Data[Density: %f] \n", x, y, z, voxel->data.density);
+					}
+				}
+			}
 		}
 
 		long long totalVoxels;

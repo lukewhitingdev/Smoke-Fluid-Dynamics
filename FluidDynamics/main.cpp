@@ -152,6 +152,12 @@ HRESULT		InitWorld(int width, int height)
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(-5, 0, 0));
 
+    AllocConsole();
+    freopen("conin$", "r", stdin);
+    freopen("conout$", "w", stdout);
+    freopen("conout$", "w", stderr);
+    printf("Debugging Window:\n");
+
     camera = new GameObject("Camera");
     camera->setRenderable(false);
     camera->setUpdateable(true);
@@ -169,14 +175,15 @@ HRESULT		InitWorld(int width, int height)
     Grid* gridComponent = grid->addComponent<Grid>();
     CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
     
-    int w = 5;
-    int h = 5;
-    int d = 5;
+    int w = 3;
+    int h = 3;
+    int d = 3;
 
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
     gridComponent->GenerateGrid(w, h, d);
 
     CFD->setGrid(w, h, d);
+    CFD->addDensitySource(0, 0, 0, 10);
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     gameObjects.emplace_back(grid);
