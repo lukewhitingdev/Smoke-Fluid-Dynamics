@@ -68,7 +68,7 @@ namespace CFD
 		void updateDiffuse(float deltaTime);
 
 		std::vector<Density> densities;
-		float diffusionRate = 10;
+		float diffusionRate = 1.0f;
 
 		// Gets the index of a specified x,y,z position in a 1D array.
 		long long getIndex(int x, int y, int z)

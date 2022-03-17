@@ -60,14 +60,14 @@ CFDVoxel* CFDGrid::getVoxel(int x, int y, int z)
 
 void CFDGrid::Update(float deltaTime)
 {
-	updateDensitySources(deltaTime);
+	updateDensitySources(0.016f);
 
-	printf("Post Source: \n");
-	this->printGridInfomation(voxels);
+	//printf("Post Source: \n");
+	//this->printGridInfomation(voxels);
 
-	updateDiffuse(deltaTime);
+	updateDiffuse(0.016f);
 
-	printf("Post Diffusion: \n");
+	printf("\n Post Diffusion: \n");
 	this->printGridInfomation(voxels);
 }
 

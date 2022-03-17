@@ -183,7 +183,7 @@ HRESULT		InitWorld(int width, int height)
     gridComponent->GenerateGrid(w, h, d);
 
     CFD->setGrid(w, h, d);
-    CFD->addDensitySource(0, 0, 0, 0.1);
+    CFD->addDensitySource(0, 0, 0, 1);
     CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
