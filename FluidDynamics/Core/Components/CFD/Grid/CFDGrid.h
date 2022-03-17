@@ -24,13 +24,13 @@ namespace CFD
 
 	struct CFDVoxel
 	{
-		CFDVoxel() : x(-1), y(-1), z(-1), data() {};
-		CFDVoxel(int x, int y, int z) : x(x), y(y), z(z), data() {};
+		CFDVoxel() : x(-1), y(-1), z(-1), data(new CFDData()) {};
+		CFDVoxel(int x, int y, int z) : x(x), y(y), z(z), data(new CFDData()) {};
 
-		CFDData* getData() { return &data; };
+		CFDData* getData() { return data; };
 
 		int x, y, z;
-		CFDData data;
+		CFDData* data;
 	};
 
 	class CFDGrid : public Component
@@ -76,7 +76,7 @@ namespace CFD
 			return width * height * z + height * y + x;
 		}
 
-		void printGridInfomation()
+		void printGridInfomation(CFDVoxel* voxels)
 		{
 			for(int x = 0; x < width; x++)
 			{
@@ -84,8 +84,8 @@ namespace CFD
 				{
 					for(int z = 0; z < depth; z++)
 					{
-						CFDVoxel* voxel = this->getVoxel(x, y, z);
-						printf("[%d, %d, %d] Data[Density: %f] \n", x, y, z, voxel->data.density);
+						CFDVoxel* voxel = &voxels[this->getIndex(x,y,z)];
+						printf("[%d, %d, %d] Data[Density: %f] \n", x, y, z, voxel->data->density);
 					}
 				}
 			}

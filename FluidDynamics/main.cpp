@@ -175,15 +175,15 @@ HRESULT		InitWorld(int width, int height)
     Grid* gridComponent = grid->addComponent<Grid>();
     CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
     
-    int w = 3;
-    int h = 3;
-    int d = 3;
+    int w = 5;
+    int h = 5;
+    int d = 5;
 
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
     gridComponent->GenerateGrid(w, h, d);
 
     CFD->setGrid(w, h, d);
-    CFD->addDensitySource(0, 0, 0, 10);
+    CFD->addDensitySource(0, 0, 0, 0.1);
     CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
