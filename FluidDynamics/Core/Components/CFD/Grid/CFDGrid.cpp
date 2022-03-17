@@ -12,6 +12,45 @@ CFDGrid::~CFDGrid()
 
 void CFDGrid::Start()
 {
+	D3D* direct3D = D3D::getInstance();
+
+	D3D11_TEXTURE3D_DESC texDesc = {};
+	ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE3D_DESC));
+	texDesc.Width = width;
+	texDesc.Height = height;
+	texDesc.Depth = depth;
+	texDesc.MipLevels = 1;
+	texDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+	if(FAILED(direct3D->device->CreateTexture3D(&texDesc, nullptr, &voxelTex)))
+		throw;
+
+	direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC texViewDesc = {};
+	ZeroMemory(&texViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+	texViewDesc.Format = texDesc.Format;
+	texViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
+	texViewDesc.Texture2D.MipLevels = texDesc.MipLevels;
+	texViewDesc.Texture2D.MostDetailedMip = 0;
+
+	direct3D->device->CreateShaderResourceView(voxelTex, &texViewDesc, &voxelView);
+
+	// Create Sampler
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	direct3D->device->CreateSamplerState(&sampDesc, &sampler);
+
+
 	updateDensitySources(0.016f);
 
 	initialVoxels = new CFDVoxel[totalVoxels];
@@ -139,6 +178,8 @@ CFDVoxel* CFDGrid::getVoxel(int x, int y, int z)
 
 void CFDGrid::Update(float deltaTime)
 {
+	D3D* direct3D = D3D::getInstance();
+
 	updateDensitySources(0.016f);
 
 	//printf("Post Source: \n");
@@ -148,6 +189,15 @@ void CFDGrid::Update(float deltaTime)
 
 	printf("\n Post Diffusion: \n");
 	this->printGridInfomation(voxels);
+}
+
+void CFDGrid::Render()
+{
+	D3D* direct3D = D3D::getInstance();
+
+	direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
+	direct3D->immediateContext->PSSetSamplers(0, 1, &sampler);
+	direct3D->immediateContext->PSSetShaderResources(0, 1, &voxelView);
 }
 
 void CFD::CFDGrid::addDensitySource(int x, int y, int z)

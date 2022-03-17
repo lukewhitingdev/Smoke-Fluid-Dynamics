@@ -2,9 +2,16 @@
 #include "Core/Entity System/Component.h"
 #include <vector>
 #include <DirectXMath.h>
+#include <d3d11.h>
+#include "Utility/Direct3D/Headers/D3D.h"
 
 namespace CFD
 {
+
+	struct CFDBuffer
+	{
+
+	};
 
 	struct Density
 	{
@@ -49,7 +56,7 @@ namespace CFD
 		CFDVoxel* getVoxel(int x, int y, int z);
 
 		void Update(float deltaTime);
-		void Render() {};
+		void Render();
 
 		// Adds a density source to the grid.
 		void addDensitySource(int x, int y, int z);
@@ -140,6 +147,12 @@ namespace CFD
 		// Grid.
 		CFDVoxel* voxels;
 		CFDVoxel* initialVoxels;
+
+		// Texture.
+		ID3D11SamplerState* sampler;
+		ID3D11Texture3D* voxelTex;
+		ID3D11Resource* voxelResource;
+		ID3D11ShaderResourceView* voxelView;
 	};
 }
 

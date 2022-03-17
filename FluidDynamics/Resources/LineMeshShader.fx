@@ -7,20 +7,23 @@ cbuffer ConstantBuffer : register(b0)
 
 struct VS_INPUT
 {
-    float4 Pos : POSITION;
-    float3 Norm : NORMAL;
-    float2 Tex : TEXCOORD0;
-    float3 instancePosition : TEXCOORD1;
+	float4 Pos : POSITION;
+	float3 Norm : NORMAL;
+	float2 Tex : TEXCOORD0;
+	float3 instancePosition : TEXCOORD1;
 };
 
 struct PS_INPUT
 {
-    float4 Pos : SV_POSITION;
+	float4 Pos : SV_POSITION;
 };
 
-PS_INPUT VSMain( VS_INPUT input )
+Texture3D txCFD;
+SamplerState sam;
+
+PS_INPUT VSMain(VS_INPUT input)
 {
-    PS_INPUT output = (PS_INPUT) 0;
+	PS_INPUT output = (PS_INPUT) 0;
 
     input.Pos.x += input.instancePosition.x;
     input.Pos.y += input.instancePosition.y;
@@ -34,6 +37,8 @@ PS_INPUT VSMain( VS_INPUT input )
 }
 
 float4 PSMain(PS_INPUT input) : SV_TARGET
-{
-    return float4(255, 0, 0, 255);
+{    
+	float yeet = txCFD.Sample(sam, input.Pos.xyz);
+    
+	return float4(yeet, 0, 0, 255);
 }
