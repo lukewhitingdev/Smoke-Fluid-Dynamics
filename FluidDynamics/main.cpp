@@ -175,9 +175,9 @@ HRESULT		InitWorld(int width, int height)
     Grid* gridComponent = grid->addComponent<Grid>();
     CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
     
-    int w = 5;
-    int h = 5;
-    int d = 5;
+    int w = 2;
+    int h = 2;
+    int d = 2;
 
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
     gridComponent->GenerateGrid(w, h, d);

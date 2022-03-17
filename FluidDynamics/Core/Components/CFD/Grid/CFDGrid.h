@@ -68,12 +68,13 @@ namespace CFD
 		void updateDiffuse(float deltaTime);
 
 		std::vector<Density> densities;
-		float diffusionRate = 1.0f;
+		float diffusionRate = 0.5f;
+		float diffuse = 0;
 
 		// Gets the index of a specified x,y,z position in a 1D array.
 		long long getIndex(int x, int y, int z)
 		{
-			return width * height * z + height * y + x;
+				return width * height * z + height * y + x;
 		}
 
 		void printGridInfomation(CFDVoxel* voxels)
@@ -84,12 +85,49 @@ namespace CFD
 				{
 					for(int z = 0; z < depth; z++)
 					{
-						CFDVoxel* voxel = &voxels[this->getIndex(x,y,z)];
-						printf("[%d, %d, %d] Data[Density: %f] \n", x, y, z, voxel->data->density);
+						printf("Center: \n");
+						printDensityAtLocation(x, y, z, voxels);
+
+						if(x+1 < width)
+							printf("Right: \n");
+
+						printDensityAtLocation(x+1, y, z, voxels);
+
+						if (x - 1 >= 0)
+							printf("Left: \n");
+						printDensityAtLocation(x-1, y, z, voxels);
+
+
+						if (y + 1 < height)
+							printf("Up: \n");
+						printDensityAtLocation(x, y+1, z, voxels);
+
+						if (y - 1 >= 0)
+							printf("Down: \n");
+						printDensityAtLocation(x, y-1, z, voxels);
+
+						if (z + 1 < depth)
+							printf("Front: \n");
+						printDensityAtLocation(x, y, z+1, voxels);
+
+						if (z - 1 >= 0)
+							printf("Back: \n");
+						printDensityAtLocation(x, y, z-1, voxels);
+
+						printf("\n\n");
 					}
 				}
 			}
 		}
+
+		void printDensityAtLocation(int x, int y, int z, CFDVoxel* voxels) 
+		{
+			if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth)
+			{
+				CFDVoxel* voxel = &voxels[this->getIndex(x, y, z)];
+				printf("[%d, %d, %d] data: [Density: %f] \n", x, y, z, voxel->data->density);
+			}
+		};
 
 		long long totalVoxels;
 
