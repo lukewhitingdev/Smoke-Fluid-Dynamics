@@ -152,10 +152,10 @@ HRESULT		InitWorld(int width, int height)
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(-5, 0, 0));
 
+    FILE* fpstdout = stdout;
+
     AllocConsole();
-    freopen("conin$", "r", stdin);
-    freopen("conout$", "w", stdout);
-    freopen("conout$", "w", stderr);
+    freopen_s(&fpstdout, "CONOUT$", "w", stdout);
     printf("Debugging Window:\n");
 
     camera = new GameObject("Camera");
@@ -184,6 +184,7 @@ HRESULT		InitWorld(int width, int height)
 
     CFD->setGrid(w, h, d);
     CFD->addDensitySource(0, 0, 0, 10);
+    CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     gameObjects.emplace_back(grid);
@@ -217,11 +218,12 @@ void CleanupDevice()
 
     if (direct3D->device) direct3D->device->Release();
 
-    // handy for finding dx memory leaks
-    debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-
-    if (debugDevice)
+    if(debugDevice)
+    {
+        // handy for finding dx memory leaks
+        debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
         debugDevice->Release();
+    }
 }
 
 
