@@ -1,12 +1,19 @@
 #include "CFDGrid.h"
 using namespace CFD;
 
-CFDGrid::CFDGrid() : totalVoxels(), width(), height(), depth(), voxels(nullptr)
+CFDGrid::CFDGrid() : totalVoxels(), width(), height(), depth(), simulating(false), voxels(nullptr), initialVoxels(nullptr)
 {
 }
 
 CFDGrid::~CFDGrid()
 {
+}
+
+void CFDGrid::Start()
+{
+	initialVoxels = (CFDVoxel*)malloc(sizeof(CFDVoxel) * totalVoxels);
+	memcpy_s(initialVoxels, sizeof(CFDVoxel) * totalVoxels, voxels, sizeof(CFDVoxel) * totalVoxels);
+	simulating = true;
 }
 
 void CFDGrid::setGrid(long long w, long long h, long long d)
@@ -58,24 +65,34 @@ void CFDGrid::Update(float deltaTime)
 	printf("Post Source: \n");
 	this->printGridInfomation();
 
-	updateDiffuse(deltaTime);
+	//updateDiffuse(deltaTime);
 
-	printf("Post Diffusion: \n");
-	this->printGridInfomation();
+	//printf("Post Diffusion: \n");
+	//this->printGridInfomation();
 
 }
 
 void CFD::CFDGrid::addDensitySource(int x, int y, int z)
 {
-	densities.emplace_back(Density(x,y,z));
+	if (!simulating)
+		densities.emplace_back(Density(x, y, z));
+	else
+		printf("Cannot add density whilst simulation is running, please add density at (%d, %d %d) before starting.", x, y, z);
 }
 
 void CFD::CFDGrid::addDensitySource(int x, int y, int z, float density)
 {
-	if (x > width || y > height || z > depth)
-		return;
+	if(!simulating)
+	{
+		if (x > width || y > height || z > depth)
+			return;
 
-	densities.emplace_back(Density(x, y, z, density));
+		densities.emplace_back(Density(x, y, z, density));
+	}else
+	{
+		printf("Cannot add density whilst simulation is running, please add density at (%d, %d %d)(dens: %f) before starting.", x, y, z, density);
+	}
+
 }
 
 float CFD::CFDGrid::getDensity(int x, int y, int z)

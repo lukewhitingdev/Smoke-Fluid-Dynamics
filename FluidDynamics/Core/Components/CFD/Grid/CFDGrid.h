@@ -15,7 +15,6 @@ namespace CFD
 		float value;
 	};
 
-
 	struct CFDData
 	{
 		CFDData() : density() {};
@@ -39,6 +38,9 @@ namespace CFD
 	public:
 		CFDGrid();
 		~CFDGrid();
+
+		// Starts the simulation and locks in the density values setup before-hand.
+		void Start();
 
 		// Sets a CFD grid up with Voxels that are manipulated in the update loop.
 		void setGrid(long long w, long long h, long long d);
@@ -95,8 +97,11 @@ namespace CFD
 		long long height;
 		long long depth;
 
+		bool simulating;
+
 		// Grid.
 		CFDVoxel* voxels;
+		CFDVoxel* initialVoxels;
 	};
 }
 
