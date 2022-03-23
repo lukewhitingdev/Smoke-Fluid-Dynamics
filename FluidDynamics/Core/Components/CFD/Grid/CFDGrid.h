@@ -53,19 +53,18 @@ namespace CFD
 		void setGrid(long long w, long long h, long long d);
 
 		// Gets a voxel at a given location.
-		CFDVoxel* getVoxel(int x, int y, int z);
+		CFDVoxel* getVoxel(int x, int y, int z, CFDVoxel* arr);
 
 		void Update(float deltaTime);
 		void Render();
-
-		// Adds a density source to the grid.
-		void addDensitySource(int x, int y, int z);
 
 		// Adds a density source to the grid.
 		void addDensitySource(int x, int y, int z, float density);
 
 		// Return the density value at a given position on the grid.
 		float getDensity(int x, int y, int z);
+
+		float getDensityPreviousFrame(int x, int y, int z);
 
 	private:
 
@@ -75,7 +74,7 @@ namespace CFD
 		void updateDiffuse(float deltaTime);
 
 		std::vector<Density> densities;
-		float diffusionRate = 0.5f;
+		float diffusionRate = 1.0f;
 		float diffuse = 0;
 
 		// Gets the index of a specified x,y,z position in a 1D array.
@@ -146,7 +145,7 @@ namespace CFD
 
 		// Grid.
 		CFDVoxel* voxels;
-		CFDVoxel* initialVoxels;
+		CFDVoxel* prevStepVoxels;
 
 		// Texture.
 		ID3D11SamplerState* sampler;
