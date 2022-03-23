@@ -2,7 +2,7 @@
 #include "Utility/Math/Math.h"
 using namespace CFD;
 
-CFDGrid::CFDGrid() : totalVoxels(), width(), height(), depth(), simulating(false), voxels(nullptr), prevStepVoxels(nullptr)
+CFDGrid::CFDGrid() : totalVoxels(), width(), height(), depth(), simulating(false), voxels(nullptr), voxels0(nullptr)
 {
 }
 
@@ -58,7 +58,7 @@ void CFDGrid::setGrid(long long w, long long h, long long d)
 	totalVoxels = width * height * depth;
 
 	voxels = new CFDVoxel[totalVoxels];
-	prevStepVoxels = new CFDVoxel[totalVoxels];
+	voxels0 = new CFDVoxel[totalVoxels];
 
 	int index = 0;
 	for (int z = 0; z < depth; z++)
@@ -74,9 +74,6 @@ void CFDGrid::setGrid(long long w, long long h, long long d)
 			}
 		}
 	}
-
-	prevStepVoxels = voxels;
-	voxels = prevStepVoxels;
 }
 
 CFDVoxel* CFDGrid::getVoxel(int x, int y, int z, CFDVoxel* arr)
@@ -100,13 +97,8 @@ void CFDGrid::Update(float deltaTime)
 	static int iter;
 	D3D* direct3D = D3D::getInstance();
 
-	updateDensitySources(0.016f);
-
 	//printf("Post Source: \n");
 	//this->printGridInfomation(voxels);
-
-	prevStepVoxels = voxels;
-	voxels = prevStepVoxels;
 
 	//system("cls");
 
@@ -115,15 +107,12 @@ void CFDGrid::Update(float deltaTime)
 	//printf("\n Post Diffusion: \n");
 	//this->printGridInfomation(voxels);
 
-	prevStepVoxels = voxels;
-	voxels = prevStepVoxels;
-
 	direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
 	printf("Iteration: %d \n", iter);
 
 	// Test, this previous density needs to be equal if its using a stable method since we can backtrace linear methods.
-	printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(1, 1, 1));
-	printf("Density[1,1,1] Curr: %f \n", this->getDensity(1, 1, 1));
+	printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
+	printf("Density[1,1,1] Curr: %f \n", this->getDensity(0, 0, 0));
 
 	iter++;
 }
@@ -142,7 +131,7 @@ void CFD::CFDGrid::addDensitySource(int x, int y, int z, float density)
 	if (x > width || y > height || z > depth)
 		return;
 
-	CFDVoxel* voxel = this->getVoxel(x, y, z, voxels);
+	CFDVoxel* voxel = this->getVoxel(x, y, z, voxels0);
 	voxel->data->density = density;
 }
 
@@ -162,7 +151,6 @@ float CFD::CFDGrid::getDensity(int x, int y, int z)
 float CFD::CFDGrid::getDensityPreviousFrame(int x, int y, int z)
 {
 	CFDVoxel* center = this->getVoxel(x, y, z, voxels);
-	CFDVoxel* prevCenter = this->getVoxel(x, y, z, prevStepVoxels);
 
 	CFDVoxel* left = this->getVoxel(x - 1, y, z, voxels);
 	float leftDens = (left) ? left->data->density : 0;
@@ -182,8 +170,6 @@ float CFD::CFDGrid::getDensityPreviousFrame(int x, int y, int z)
 	CFDVoxel* back = this->getVoxel(x, y, z - 1, voxels);
 	float backDens = (back) ? back->data->density : 0;
 
-	float initialDensity = prevCenter->data->density;
-
 	// Calculate the diffuse from our neighbours.
 	float xDiffuse = leftDens + rightDens;
 	float yDiffuse = upDens + downDens;
@@ -195,22 +181,10 @@ float CFD::CFDGrid::getDensityPreviousFrame(int x, int y, int z)
 	return center->data->density - diffuse * totalDiffuse - 4 * center->data->density;
 }
 
-void CFD::CFDGrid::updateDensitySources(float deltaTime)
-{
-	for(int i = 0; i < totalVoxels; i++)
-	{
-		CFDVoxel* voxel = &voxels[i];
-		CFDVoxel* prevFrameVoxel = &prevStepVoxels[i];
-		if (voxel != nullptr)
-		{
-			voxel->data->density += prevFrameVoxel->data->density * deltaTime;
-		}
-	}
-}
-
 void CFD::CFDGrid::updateDiffuse(float deltaTime)
 {
-	diffuse = deltaTime * diffusionRate * totalVoxels;
+	diffuse = (diffusionRate * totalVoxels) * deltaTime;
+	const float c = (1 + 4 * diffuse);
 
 	CFDVoxel* center = nullptr;
 	CFDVoxel* prevCenter = nullptr;
@@ -224,8 +198,8 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 	float xDiffuse = 0;
 	float yDiffuse = 0;
 	float zDiffuse = 0;
-	float totalDiffuse = 0;
-	float initialDensity = 0;
+	float totalAreaDiffuse = 0;
+	float previousFrameDensity = 0;
 
 	float leftDens = 0;
 	float rightDens = 0;
@@ -235,7 +209,7 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 	float backDens = 0;
 
 
-	for(int i = 0; i < 1; i++) // Seems to be for relaxation but idk.
+	for(int i = 0; i < 20; i++) // Seems to be for relaxation but idk.
 	{
 		for(int x = 0; x < width; x++)
 		{
@@ -244,7 +218,7 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 				for(int z = 0; z < depth; z++)
 				{
 					center = this->getVoxel(x, y, z, voxels);
-					prevCenter = this->getVoxel(x, y, z, prevStepVoxels);
+					prevCenter = this->getVoxel(x, y, z, voxels0);
 
 					left = this->getVoxel(x - 1, y, z, voxels);
 					leftDens = (left) ? left->data->density : 0;
@@ -264,7 +238,7 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 					back = this->getVoxel(x, y, z - 1, voxels);
 					backDens = (back) ? back->data->density : 0;
 
-					initialDensity = prevCenter->data->density;
+					previousFrameDensity = prevCenter->data->density;
 
 					// Calculate the diffuse from our neighbours.
 					xDiffuse = leftDens + rightDens;
@@ -272,12 +246,10 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 					zDiffuse = forwardDens + backDens;
 
 					// Add them up.
-					totalDiffuse = xDiffuse + yDiffuse + zDiffuse;
-
-					float densPrev = center->data->density - diffuse * totalDiffuse - 4 * center->data->density;
+					totalAreaDiffuse = xDiffuse + yDiffuse + zDiffuse;
 
 					// Assign the current voxels density to its newly calculated one.
-					center->data->density = initialDensity + diffuse * totalDiffuse / (1+4*diffuse);
+					center->data->density = previousFrameDensity + diffuse * totalAreaDiffuse / c;
 				}
 			}
 		}

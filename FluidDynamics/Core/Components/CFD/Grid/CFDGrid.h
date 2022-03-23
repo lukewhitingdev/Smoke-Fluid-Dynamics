@@ -68,9 +68,6 @@ namespace CFD
 
 	private:
 
-		// Updates the densities of specified voxels within the grid.
-		void updateDensitySources(float deltaTime);
-
 		void updateDiffuse(float deltaTime);
 
 		std::vector<Density> densities;
@@ -145,7 +142,7 @@ namespace CFD
 
 		// Grid.
 		CFDVoxel* voxels;
-		CFDVoxel* prevStepVoxels;
+		CFDVoxel* voxels0;
 
 		// Texture.
 		ID3D11SamplerState* sampler;

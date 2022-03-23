@@ -141,6 +141,7 @@ HRESULT		InitMesh()
 
 GameObject* camera;
 GameObject* grid;
+CFD::CFDGrid* cfd;
 
 // ***************************************************************************************
 // InitWorld
@@ -174,16 +175,16 @@ HRESULT		InitWorld(int width, int height)
     grid->removeMaterial();
     Grid* gridComponent = grid->addComponent<Grid>();
     CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
+    cfd = CFD;
     
-    int w = 2;
-    int h = 2;
-    int d = 2;
+    int w = 4;
+    int h = 4;
+    int d = 4;
 
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
     gridComponent->GenerateGrid(w, h, d);
 
     CFD->setGrid(w, h, d);
-    CFD->addDensitySource(0, 0, 0, 1.0f);
     CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
@@ -258,6 +259,8 @@ void Update()
     float t = TimeUtility::getDeltaTime(); // capped at 60 fps
     if (t == 0.0f)
         return;
+
+    cfd->addDensitySource(0, 0, 0, 1.0f);
 
     for (int i = 0; i < gameObjects.size(); i++)
     {
