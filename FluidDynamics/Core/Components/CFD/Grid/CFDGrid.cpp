@@ -125,8 +125,8 @@ void CFDGrid::Update(float deltaTime)
 	//printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
 	//printf("Density[1,1,1] Curr: %f \n", this->getDensity(0, 0, 0));
 
-	printf("%f \n", this->getVoxel(0, 0, 0, voxels)->data->density);
-	printf("%f \n", this->getVoxel(0, 0, 0, voxels0)->data->density);
+	//printf("%f \n", this->getVoxel(0, 0, 0, voxels)->data->density);
+	//printf("%f \n", this->getVoxel(0, 0, 0, voxels0)->data->density);
 
 	iter++;
 }

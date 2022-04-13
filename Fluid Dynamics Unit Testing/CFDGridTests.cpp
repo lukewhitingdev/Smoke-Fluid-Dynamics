@@ -38,6 +38,8 @@ Make this into a suite so we can re-use device and object to test other things,
 just so that when running the tests we dont have to initDevice and create a gameObject everytime which is slow.
 */
 
+/*------- Grid Functionality Tests ------*/
+
 TEST(CFDGrid, setGridSize) {
 
 	D3D* device = D3D::getInstance();
@@ -161,4 +163,42 @@ TEST(CFDGrid, setDensitySourceInvalid) {
 	float expected = -1;
 
 	EXPECT_EQ(result, expected);
+}
+
+/*----- Stability Tests ------*/
+
+TEST(CFDSimulation, stableDiffuse2D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int iterations = 100;
+
+	int gX = 4;
+	int gY = 4;
+	int gZ = 1;
+
+	int x = 0;
+	int y = 0;
+	int z = 0;
+	float value = 10;
+
+	float deltaTime = 0.1f;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+
+	grid->setGrid(gX, gY, gZ);
+
+	for(int i = 0; i < iterations; ++i)
+	{
+		grid->addDensitySource(x, y, z, value);
+		grid->Update(deltaTime);
+	}
+
+	float result = grid->getDensity(x, y, z);
+	float expected = 0.012751;
+
+	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f));
 }
