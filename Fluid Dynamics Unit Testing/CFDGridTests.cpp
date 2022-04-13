@@ -53,7 +53,7 @@ TEST(CFDGrid, setGridSize) {
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
 	grid->setGrid(x, y, z);
 	
-	CFD::CFDVoxel* voxel = grid->getVoxel(targetx, targety, targetz);
+	CFD::CFDVoxel* voxel = grid->getVoxelCurrentFrame(targetx, targety, targetz);
 
 	EXPECT_TRUE(voxel != nullptr)<< "Voxel could not be found!";
 	EXPECT_EQ(voxel->x, targetx) << "Voxel X Coordinate Incorrect!";
@@ -79,7 +79,7 @@ TEST(CFDGrid, getVoxelValid) {
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
 	grid->setGrid(x, y, z);
 
-	CFD::CFDVoxel* voxel = grid->getVoxel(targetx, targety, targetz);
+	CFD::CFDVoxel* voxel = grid->getVoxelCurrentFrame(targetx, targety, targetz);
 
 	EXPECT_TRUE(voxel != nullptr) << "Voxel could not be found!";
 	EXPECT_EQ(voxel->x, targetx) << "Voxel X Coordinate Incorrect!";
@@ -105,7 +105,7 @@ TEST(CFDGrid, getVoxelInvalid) {
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
 	grid->setGrid(x, y, z);
 
-	CFD::CFDVoxel* voxel = grid->getVoxel(targetx, targety, targetz);
+	CFD::CFDVoxel* voxel = grid->getVoxelCurrentFrame(targetx, targety, targetz);
 
 	EXPECT_TRUE(voxel == nullptr);
 }

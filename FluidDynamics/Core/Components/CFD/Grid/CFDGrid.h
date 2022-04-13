@@ -53,7 +53,8 @@ namespace CFD
 		void setGrid(long long w, long long h, long long d);
 
 		// Gets a voxel at a given location.
-		CFDVoxel* getVoxel(int x, int y, int z, CFDVoxel* arr);
+		CFDVoxel* getVoxelCurrentFrame(int x, int y, int z);
+		CFDVoxel* getVoxelPreviousFrame(int x, int y, int z);
 
 		void Update(float deltaTime);
 		void Render();
@@ -67,6 +68,7 @@ namespace CFD
 		float getDensityPreviousFrame(int x, int y, int z);
 
 	private:
+		CFDVoxel* getVoxel(int x, int y, int z, CFDVoxel* arr);
 
 		void updateDiffuse(float deltaTime);
 		void updatePreviousDiffuse();

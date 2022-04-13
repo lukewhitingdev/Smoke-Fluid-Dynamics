@@ -92,6 +92,16 @@ CFDVoxel* CFDGrid::getVoxel(int x, int y, int z, CFDVoxel* arr)
 	return &arr[index];
 }
 
+CFDVoxel* CFD::CFDGrid::getVoxelCurrentFrame(int x, int y, int z)
+{
+	return getVoxel(x, y, z, voxels);
+}
+
+CFDVoxel* CFD::CFDGrid::getVoxelPreviousFrame(int x, int y, int z)
+{
+	return getVoxel(x, y, z, voxels0);
+}
+
 void CFDGrid::Update(float deltaTime)
 {
 	static int iter;
@@ -108,8 +118,8 @@ void CFDGrid::Update(float deltaTime)
 	//printf("\n Post Diffusion: \n");
 	//this->printGridInfomation(voxels);
 
-	direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
-	printf("Iteration: %d \n", iter);
+	//direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
+	//printf("Iteration: %d \n", iter);
 
 	// Test, this previous density needs to be equal if its using a stable method since we can backtrace linear methods.
 	//printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
