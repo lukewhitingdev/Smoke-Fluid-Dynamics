@@ -19,5 +19,10 @@ public:
 	{
 		return min + (rand() % static_cast<int>(max - min + 1));
 	}
+
+	static bool compareFloat(float a, float b, float accuracy)
+	{
+		return fabs(a - b) < accuracy;
+	}
 };
 

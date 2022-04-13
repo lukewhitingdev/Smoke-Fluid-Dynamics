@@ -29,6 +29,9 @@
 #include "Core/Components/CFD/Grid/CFDGrid.h"
 #include "Core/Components/CFD/Grid/CFDGrid.cpp"
 
+#include "Utility/Math/Math.h"
+#include "Utility/Math/Math.cpp"
+
 /*
 TODO:
 Make this into a suite so we can re-use device and object to test other things, 
@@ -117,22 +120,22 @@ TEST(CFDGrid, setDensitySource) {
 
 	GameObject object = GameObject();
 
-	int x = 5;
-	int y = 5;
-	int z = 5;
+	int x = 1;
+	int y = 1;
+	int z = 1;
 	float value = 10;
 
 	float deltaTime = 0.1f;
 
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
 
-	grid->setGrid(10, 10, 10);
+	grid->setGrid(2, 2, 2);
 	grid->addDensitySource(x, y, z, value);
 	grid->Update(deltaTime);
 	float result = grid->getDensity(x, y, z);
-	float expected = value * deltaTime;
+	float expected = 0.886525;
 
-	EXPECT_EQ(result, expected);
+	EXPECT_TRUE(Math::compareFloat(result, expected, 0.000001f));
 }
 
 TEST(CFDGrid, setDensitySourceInvalid) {
