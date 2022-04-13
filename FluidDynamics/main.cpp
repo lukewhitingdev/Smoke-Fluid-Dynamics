@@ -179,7 +179,7 @@ HRESULT		InitWorld(int width, int height)
     
     int w = 4;
     int h = 4;
-    int d = 4;
+    int d = 1;
 
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
     gridComponent->GenerateGrid(w, h, d);
@@ -260,7 +260,8 @@ void Update()
     if (t == 0.0f)
         return;
 
-    cfd->addDensitySource(0, 0, 0, 1.0f);
+    cfd->addDensitySource(0, 0, 0, 10.0f);
+
 
     for (int i = 0; i < gameObjects.size(); i++)
     {

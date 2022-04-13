@@ -102,7 +102,8 @@ void CFDGrid::Update(float deltaTime)
 
 	//system("cls");
 
-	updateDiffuse(0.016f); 
+	updateDiffuse(0.016f);
+	updatePreviousDiffuse();
 
 	//printf("\n Post Diffusion: \n");
 	//this->printGridInfomation(voxels);
@@ -111,8 +112,11 @@ void CFDGrid::Update(float deltaTime)
 	printf("Iteration: %d \n", iter);
 
 	// Test, this previous density needs to be equal if its using a stable method since we can backtrace linear methods.
-	printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
-	printf("Density[1,1,1] Curr: %f \n", this->getDensity(0, 0, 0));
+	//printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
+	//printf("Density[1,1,1] Curr: %f \n", this->getDensity(0, 0, 0));
+
+	printf("%f \n", this->getVoxel(0, 0, 0, voxels)->data->density);
+	printf("%f \n", this->getVoxel(0, 0, 0, voxels0)->data->density);
 
 	iter++;
 }
@@ -131,7 +135,7 @@ void CFD::CFDGrid::addDensitySource(int x, int y, int z, float density)
 	if (x > width || y > height || z > depth)
 		return;
 
-	CFDVoxel* voxel = this->getVoxel(x, y, z, voxels0);
+	CFDVoxel* voxel = this->getVoxel(x, y, z, voxels);
 	voxel->data->density = density;
 }
 
@@ -183,7 +187,7 @@ float CFD::CFDGrid::getDensityPreviousFrame(int x, int y, int z)
 
 void CFD::CFDGrid::updateDiffuse(float deltaTime)
 {
-	diffuse = (diffusionRate * totalVoxels) * deltaTime;
+	diffuse = deltaTime * diffusionRate * totalVoxels;
 	const float c = (1 + 4 * diffuse);
 
 	CFDVoxel* center = nullptr;
@@ -211,11 +215,11 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 
 	for(int i = 0; i < 20; i++) // Seems to be for relaxation but idk.
 	{
-		for(int x = 0; x < width; x++)
+		for (int z = 0; z < depth; ++z)
 		{
-			for(int y = 0; y < height; y++)
+			for(int y = 0; y < height; ++y)
 			{
-				for(int z = 0; z < depth; z++)
+				for(int x = 0; x < width; ++x)
 				{
 					center = this->getVoxel(x, y, z, voxels);
 					prevCenter = this->getVoxel(x, y, z, voxels0);
@@ -249,9 +253,16 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 					totalAreaDiffuse = xDiffuse + yDiffuse + zDiffuse;
 
 					// Assign the current voxels density to its newly calculated one.
-					center->data->density = previousFrameDensity + diffuse * totalAreaDiffuse / c;
+					center->data->density = (previousFrameDensity + diffuse * totalAreaDiffuse) / c;
+
+					//printf("Calculated Density [%i, %i] \n", x,y);
 				}
 			}
 		}
 	}
+}
+
+void CFD::CFDGrid::updatePreviousDiffuse()
+{
+	memcpy_s(voxels0, sizeof(CFDVoxel) * totalVoxels, voxels, sizeof(CFDVoxel) * totalVoxels);
 }

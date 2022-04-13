@@ -24,7 +24,7 @@ namespace CFD
 
 	struct CFDData
 	{
-		CFDData() : density() {};
+		CFDData() : density(1) {};
 
 		float density;
 	};
@@ -69,6 +69,7 @@ namespace CFD
 	private:
 
 		void updateDiffuse(float deltaTime);
+		void updatePreviousDiffuse();
 
 		std::vector<Density> densities;
 		float diffusionRate = 1.0f;
@@ -77,7 +78,7 @@ namespace CFD
 		// Gets the index of a specified x,y,z position in a 1D array.
 		long long getIndex(int x, int y, int z)
 		{
-				return width * height * z + height * y + x;
+			return width * height * z + height * y + x;
 		}
 
 		void printGridInfomation(CFDVoxel* voxels)
