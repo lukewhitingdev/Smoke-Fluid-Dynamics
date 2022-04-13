@@ -13,22 +13,23 @@ namespace CFD
 
 	};
 
-	struct Density
+	struct Velocity
 	{
-		Density(int x, int y, int z, float density) : x(x), y(y), z(z), value(density) {};
-		Density(int x, int y, int z) : x(x), y(y), z(z), value() {};
-		Density() : x(), y(), z(), value() {};
+		Velocity(int x, int y, int z) : x(x), y(y), z(z) {};
+		Velocity() : x(0), y(0), z(0) {};
 		int x, y, z;
-		float value;
 	};
 
+	// Data for each CFDVoxel.
 	struct CFDData
 	{
-		CFDData() : density(1) {};
+		CFDData() : density(1), velocity() {};
 
 		float density;
+		Velocity velocity;
 	};
 
+	// Voxel for to represent the CFD particle.
 	struct CFDVoxel
 	{
 		CFDVoxel() : x(-1), y(-1), z(-1), data(new CFDData()) {};
@@ -65,15 +66,16 @@ namespace CFD
 		// Return the density value at a given position on the grid.
 		float getDensity(int x, int y, int z);
 
-		float getDensityPreviousFrame(int x, int y, int z);
-
 	private:
 		CFDVoxel* getVoxel(int x, int y, int z, CFDVoxel* arr);
 
+		// Diffusion Step.
 		void updateDiffuse(float deltaTime);
-		void updatePreviousDiffuse();
+		void updateAdvection(float deltaTime);
 
-		std::vector<Density> densities;
+
+		void updatePreviousPreviousFrameVoxels();
+
 		float diffusionRate = 1.0f;
 		float diffuse = 0;
 
