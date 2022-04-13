@@ -200,5 +200,41 @@ TEST(CFDSimulation, stableDiffuse2D) {
 	float result = grid->getDensity(x, y, z);
 	float expected = 0.012751;
 
-	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f));
+	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f)) << "Result after " << iterations << " iterations: " << result;
+}
+
+TEST(CFDSimulation, stableDiffuse3D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int iterations = 100;
+
+	int gX = 4;
+	int gY = 4;
+	int gZ = 4;
+
+	int x = 0;
+	int y = 0;
+	int z = 0;
+	float value = 10;
+
+	float deltaTime = 0.1f;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+
+	grid->setGrid(gX, gY, gZ);
+
+	for (int i = 0; i < iterations; ++i)
+	{
+		grid->addDensitySource(x, y, z, value);
+		grid->Update(deltaTime);
+	}
+
+	float result = grid->getDensity(x, y, z);
+	float expected = 0.012751;
+
+	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f)) << "Result after " << iterations << " iterations: " << result;
 }
