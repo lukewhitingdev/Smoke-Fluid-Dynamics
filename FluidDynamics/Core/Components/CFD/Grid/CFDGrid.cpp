@@ -164,6 +164,20 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 
 void CFD::CFDGrid::updateAdvection(float deltaTime)
 {
+	int x0, y0, z0; // Difference between the x,y,z components of the current frame and the previous frame (backtraced?).
+
+	float deltaTime0 = deltaTime * totalVoxels;
+
+	for(int z = 0; z < depth; ++z)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+
+			}
+		}	
+	}
 }
 
 void CFD::CFDGrid::updatePreviousPreviousFrameVoxels()
