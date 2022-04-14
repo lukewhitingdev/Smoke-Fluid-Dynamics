@@ -16,8 +16,13 @@ namespace CFD
 	struct Velocity
 	{
 		Velocity(int x, int y, int z) : x(x), y(y), z(z) {};
-		Velocity() : x(0), y(0), z(0) {};
+		Velocity() : x(10), y(0), z(0) {};
 		int x, y, z;
+
+		Velocity operator * (const float& scalar)
+		{
+			return Velocity(x * scalar, y * scalar, z * scalar);
+		}
 	};
 
 	// Data for each CFDVoxel.
@@ -39,6 +44,11 @@ namespace CFD
 
 		int x, y, z;
 		CFDData* data;
+
+		CFDVoxel operator - (const Velocity& velo)
+		{
+			return CFDVoxel(x - velo.x, y - velo.y, z - velo.z);
+		}
 	};
 
 	class CFDGrid : public Component
@@ -73,7 +83,6 @@ namespace CFD
 		void updateDiffuse(float deltaTime);
 		void updateAdvection(float deltaTime);
 
-
 		void updatePreviousPreviousFrameVoxels();
 
 		float diffusionRate = 1.0f;
@@ -87,45 +96,17 @@ namespace CFD
 
 		void printGridInfomation(CFDVoxel* voxels)
 		{
-			for(int x = 0; x < width; x++)
+			printf("\n");
+			for(int y = 0; y < height; ++y)
 			{
-				for(int y = 0; y < height; y++)
+				for (int x = 0; x < width; ++x)
 				{
-					for(int z = 0; z < depth; z++)
-					{
-						printf("Center: \n");
-						printDensityAtLocation(x, y, z, voxels);
-
-						if(x+1 < width)
-							printf("Right: \n");
-
-						printDensityAtLocation(x+1, y, z, voxels);
-
-						if (x - 1 >= 0)
-							printf("Left: \n");
-						printDensityAtLocation(x-1, y, z, voxels);
-
-
-						if (y + 1 < height)
-							printf("Up: \n");
-						printDensityAtLocation(x, y+1, z, voxels);
-
-						if (y - 1 >= 0)
-							printf("Down: \n");
-						printDensityAtLocation(x, y-1, z, voxels);
-
-						if (z + 1 < depth)
-							printf("Front: \n");
-						printDensityAtLocation(x, y, z+1, voxels);
-
-						if (z - 1 >= 0)
-							printf("Back: \n");
-						printDensityAtLocation(x, y, z-1, voxels);
-
-						printf("\n\n");
-					}
+					CFDVoxel voxel = *this->getVoxelCurrentFrame(x, y, 0);
+					printf(" [[D: %f][V: %f, %f, %f]] ", voxel.data->density, voxel.data->velocity.x, voxel.data->velocity.y, voxel.data->velocity.z);
 				}
+				printf("\n");
 			}
+
 		}
 
 		void printDensityAtLocation(int x, int y, int z, CFDVoxel* voxels) 

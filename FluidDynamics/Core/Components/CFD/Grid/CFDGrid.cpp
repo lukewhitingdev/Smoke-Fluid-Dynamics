@@ -164,17 +164,51 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 
 void CFD::CFDGrid::updateAdvection(float deltaTime)
 {
-	int x0, y0, z0; // Difference between the x,y,z components of the current frame and the previous frame (backtraced?).
+	CFDVoxel backtracedVoxel;	// Voxel that has been backtraced using the velocity field.
 
 	float deltaTime0 = deltaTime * totalVoxels;
 
-	for(int z = 0; z < depth; ++z)
+	for (int x = 0; x < width; ++x)
 	{
 		for (int y = 0; y < height; ++y)
 		{
-			for (int x = 0; x < width; ++x)
+			for (int z = 0; z < depth; ++z)
 			{
+				CFDVoxel* currentVoxel = this->getVoxel(x, y, z, voxels);
+				backtracedVoxel = backtracedVoxel - currentVoxel->data->velocity * deltaTime0;	// Backtrace the current voxel back one time step using the velocity it has.
 
+				// Average its approximate neighbours (x0 being the floor of the x position and x1 being the ceil of the x position).
+				float x0, x1, y0, y1, z0, z1;
+				CFDVoxel* voxelX0;
+				CFDVoxel* voxelX1;
+				CFDVoxel* voxelY0;
+				CFDVoxel* voxelY1;
+				CFDVoxel* voxelZ0;
+				CFDVoxel* voxelZ1;
+
+				voxelX0 = this->getVoxelPreviousFrame(floor(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
+				voxelX1 = this->getVoxelPreviousFrame(ceil(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
+
+				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, floor(backtracedVoxel.y), backtracedVoxel.z);
+				voxelY1 = this->getVoxelPreviousFrame(backtracedVoxel.x, ceil(backtracedVoxel.y), backtracedVoxel.z);
+
+				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, floor(backtracedVoxel.z));
+				voxelZ1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, ceil(backtracedVoxel.z));
+
+
+				x0 = (voxelX0) ? voxelX0->data->density : 0;
+				x1 = (voxelX1) ? voxelX1->data->density : 0;
+
+				y0 = (voxelY0) ? voxelY0->data->density : 0;
+				y1 = (voxelY1) ? voxelY1->data->density : 0;
+
+				z0 = (voxelZ0) ? voxelZ0->data->density : 0;
+				z1 = (voxelZ1) ? voxelZ1->data->density : 0;
+
+				float neighbourDensity = x0 + x1 + y0 + y1 + z0 + z1;
+
+				// Average
+				currentVoxel->data->density = neighbourDensity / 6;
 			}
 		}	
 	}
@@ -235,9 +269,10 @@ void CFDGrid::Update(float deltaTime)
 	//system("cls");
 
 	updateDiffuse(0.016f);
+	//updateAdvection(0.016f);
 
 	//printf("\n Post Diffusion: \n");
-	//this->printGridInfomation(voxels);
+	this->printGridInfomation(voxels);
 
 	//direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
 	//printf("Iteration: %d \n", iter);
@@ -246,7 +281,7 @@ void CFDGrid::Update(float deltaTime)
 	//printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
 	//printf("Density[1,1,1] Curr: %f \n", this->getDensity(0, 0, 0));
 
-	printf("[%d] %f \n", iter,this->getDensity(0,0,0));
+	//printf("[%d] %f \n", iter,this->getDensity(0,0,0));
 	//printf("%f \n", this->getVoxel(0, 0, 0, voxels0)->data->density);
 
 	iter++;
