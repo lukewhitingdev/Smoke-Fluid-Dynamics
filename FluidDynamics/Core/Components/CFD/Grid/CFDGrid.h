@@ -13,15 +13,39 @@ namespace CFD
 
 	};
 
+	// TODO: Intergrate this with the other classes.
+	struct Vector3
+	{
+		Vector3(int x, int y, int z) : x(x), y(y), z(z) {};
+		int x, y, z;
+
+		Vector3 operator - (const Vector3& other)
+		{
+			return Vector3(x - other.x, y - other.y, z - other.z);
+		}
+
+		Vector3	operator -() 
+		{
+			return Vector3(-x, -y, -z);
+		};
+	};
+
 	struct Velocity
 	{
 		Velocity(int x, int y, int z) : x(x), y(y), z(z) {};
-		Velocity() : x(10), y(0), z(0) {};
+		Velocity() : x(0), y(0), z(0) {};
 		int x, y, z;
 
 		Velocity operator * (const float& scalar)
 		{
 			return Velocity(x * scalar, y * scalar, z * scalar);
+		}
+
+		void operator = (const Vector3& vec)
+		{
+			x = vec.x;
+			y = vec.y;
+			z = vec.z;
 		}
 	};
 
@@ -37,11 +61,12 @@ namespace CFD
 	// Voxel for to represent the CFD particle.
 	struct CFDVoxel
 	{
-		CFDVoxel() : x(-1), y(-1), z(-1), data(new CFDData()) {};
-		CFDVoxel(int x, int y, int z) : x(x), y(y), z(z), data(new CFDData()) {};
+		CFDVoxel() : position(Vector3(-1,-1,-1)), x(-1), y(-1), z(-1), data(new CFDData()) {};
+		CFDVoxel(int x, int y, int z) : position(Vector3(x, y, z)), x(x), y(y), z(z), data(new CFDData()) {};
 
 		CFDData* getData() { return data; };
 
+		Vector3 position;
 		int x, y, z;
 		CFDData* data;
 
@@ -79,9 +104,14 @@ namespace CFD
 	private:
 		CFDVoxel* getVoxel(int x, int y, int z, CFDVoxel* arr);
 
+		// Velocity Step.
+		void updateVelocity(float deltaTime);
 		// Diffusion Step.
 		void updateDiffuse(float deltaTime);
+		// Avection Step.
 		void updateAdvection(float deltaTime);
+		// Keep fluid within boundary.
+		void updateBoundaryVoxels();
 
 		void updatePreviousPreviousFrameVoxels();
 
@@ -102,7 +132,7 @@ namespace CFD
 				for (int x = 0; x < width; ++x)
 				{
 					CFDVoxel voxel = *this->getVoxelCurrentFrame(x, y, 0);
-					printf(" [[D: %f][V: %f, %f, %f]] ", voxel.data->density, voxel.data->velocity.x, voxel.data->velocity.y, voxel.data->velocity.z);
+					printf(" [[D: %f][V: %d, %d, %d]] ", voxel.data->density, voxel.data->velocity.x, voxel.data->velocity.y, voxel.data->velocity.z);
 				}
 				printf("\n");
 			}

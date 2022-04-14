@@ -85,6 +85,11 @@ float CFD::CFDGrid::getDensity(int x, int y, int z)
 	}
 }
 
+void CFD::CFDGrid::updateVelocity(float deltaTime)
+{
+
+}
+
 void CFD::CFDGrid::updateDiffuse(float deltaTime)
 {
 	diffuse = deltaTime * diffusionRate * totalVoxels;
@@ -214,6 +219,15 @@ void CFD::CFDGrid::updateAdvection(float deltaTime)
 	}
 }
 
+void CFD::CFDGrid::updateBoundaryVoxels()
+{
+	CFDVoxel* voxel = nullptr;
+	CFDVoxel* adjacentVoxel = nullptr;
+
+	// TODO: Make Boundary conditions.
+	// I.E. Like making the velocity turn inwards once at the boundary to keep it in bounds.
+}
+
 void CFD::CFDGrid::updatePreviousPreviousFrameVoxels()
 {
 	memcpy_s(voxels0, sizeof(CFDVoxel) * totalVoxels, voxels, sizeof(CFDVoxel) * totalVoxels);
@@ -260,31 +274,12 @@ void CFDGrid::Start()
 
 void CFDGrid::Update(float deltaTime)
 {
-	static int iter;
-	D3D* direct3D = D3D::getInstance();
-
-	//printf("Post Source: \n");
-	//this->printGridInfomation(voxels);
-
-	//system("cls");
-
 	updateDiffuse(0.016f);
 	//updateAdvection(0.016f);
 
-	//printf("\n Post Diffusion: \n");
+	//updateBoundaryVoxels();
+
 	this->printGridInfomation(voxels);
-
-	//direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
-	//printf("Iteration: %d \n", iter);
-
-	// Test, this previous density needs to be equal if its using a stable method since we can backtrace linear methods.
-	//printf("Density[1,1,1] Prev: %f \n", this->getDensityPreviousFrame(0, 0, 0));
-	//printf("Density[1,1,1] Curr: %f \n", this->getDensity(0, 0, 0));
-
-	//printf("[%d] %f \n", iter,this->getDensity(0,0,0));
-	//printf("%f \n", this->getVoxel(0, 0, 0, voxels0)->data->density);
-
-	iter++;
 
 	updatePreviousPreviousFrameVoxels();
 }
