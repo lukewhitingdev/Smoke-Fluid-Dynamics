@@ -4,6 +4,7 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 #include "Utility/Direct3D/Headers/D3D.h"
+#include "Utility/Math/Math.h"
 
 namespace CFD
 {
@@ -13,49 +14,13 @@ namespace CFD
 
 	};
 
-	// TODO: Intergrate this with the other classes.
-	struct Vector3
-	{
-		Vector3(int x, int y, int z) : x(x), y(y), z(z) {};
-		int x, y, z;
-
-		Vector3 operator - (const Vector3& other)
-		{
-			return Vector3(x - other.x, y - other.y, z - other.z);
-		}
-
-		Vector3	operator -() 
-		{
-			return Vector3(-x, -y, -z);
-		};
-	};
-
-	struct Velocity
-	{
-		Velocity(int x, int y, int z) : x(x), y(y), z(z) {};
-		Velocity() : x(0), y(0), z(0) {};
-		int x, y, z;
-
-		Velocity operator * (const float& scalar)
-		{
-			return Velocity(x * scalar, y * scalar, z * scalar);
-		}
-
-		void operator = (const Vector3& vec)
-		{
-			x = vec.x;
-			y = vec.y;
-			z = vec.z;
-		}
-	};
-
 	// Data for each CFDVoxel.
 	struct CFDData
 	{
 		CFDData() : density(1), velocity() {};
 
 		float density;
-		Velocity velocity;
+		Vector3 velocity;
 	};
 
 	// Voxel for to represent the CFD particle.
@@ -70,9 +35,9 @@ namespace CFD
 		int x, y, z;
 		CFDData* data;
 
-		CFDVoxel operator - (const Velocity& velo)
+		CFDVoxel operator - (const Vector3& vec)
 		{
-			return CFDVoxel(x - velo.x, y - velo.y, z - velo.z);
+			return CFDVoxel(x - vec.x, y - vec.y, z - vec.z);
 		}
 	};
 
@@ -97,6 +62,9 @@ namespace CFD
 
 		// Adds a density source to the grid.
 		void addDensitySource(int x, int y, int z, float density);
+		
+		// Adds a velocity source to the grid.
+		void addVelocitySource(Vector3 pos, Vector3 val);
 
 		// Return the density value at a given position on the grid.
 		float getDensity(int x, int y, int z);
@@ -104,18 +72,34 @@ namespace CFD
 	private:
 		CFDVoxel* getVoxel(int x, int y, int z, CFDVoxel* arr);
 
+		// Density Step.
+		void densityStep(float deltaTime);
+
+		// Density Diffusion Step.
+		void updateDensityDiffuse(float deltaTime);
+
+		// Density Avection Step.
+		void updateDensityAdvection(float deltaTime);
+
 		// Velocity Step.
-		void updateVelocity(float deltaTime);
-		// Diffusion Step.
-		void updateDiffuse(float deltaTime);
-		// Avection Step.
-		void updateAdvection(float deltaTime);
+		void velocityStep(float deltaTime);
+
+		// Velocity Diffusion Step.
+		void updateVelocityDiffuse(float deltaTime);
+
+		// Velocity Avection Step.
+		void updateVelocityAdvection(float deltaTime);
+
+		// Velocity Mass conservation using hodge decomposition.
+		void updateMassConservation(float deltaTime);
+
 		// Keep fluid within boundary.
 		void updateBoundaryVoxels();
 
 		void updatePreviousPreviousFrameVoxels();
 
 		float diffusionRate = 1.0f;
+		float visc = 0.2f;
 		float diffuse = 0;
 
 		// Gets the index of a specified x,y,z position in a 1D array.
@@ -132,7 +116,7 @@ namespace CFD
 				for (int x = 0; x < width; ++x)
 				{
 					CFDVoxel voxel = *this->getVoxelCurrentFrame(x, y, 0);
-					printf(" [[D: %f][V: %d, %d, %d]] ", voxel.data->density, voxel.data->velocity.x, voxel.data->velocity.y, voxel.data->velocity.z);
+					printf(" [[D: %f][V: %.2f, %.2f, %.2f]] ", voxel.data->density, voxel.data->velocity.x, voxel.data->velocity.y, voxel.data->velocity.z);
 				}
 				printf("\n");
 			}

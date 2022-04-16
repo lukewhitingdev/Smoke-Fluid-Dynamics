@@ -1,5 +1,4 @@
 #include "CFDGrid.h"
-#include "Utility/Math/Math.h"
 using namespace CFD;
 
 CFDGrid::CFDGrid() : totalVoxels(), width(), height(), depth(), simulating(false), voxels(nullptr), voxels0(nullptr)
@@ -53,6 +52,12 @@ CFDVoxel* CFDGrid::getVoxel(int x, int y, int z, CFDVoxel* arr)
 	return &arr[index];
 }
 
+void CFD::CFDGrid::densityStep(float deltaTime)
+{
+	updateDensityDiffuse(deltaTime);
+	updateDensityAdvection(deltaTime);
+}
+
 CFDVoxel* CFD::CFDGrid::getVoxelCurrentFrame(int x, int y, int z)
 {
 	return getVoxel(x, y, z, voxels);
@@ -65,11 +70,14 @@ CFDVoxel* CFD::CFDGrid::getVoxelPreviousFrame(int x, int y, int z)
 
 void CFD::CFDGrid::addDensitySource(int x, int y, int z, float density)
 {
-	if (x > width || y > height || z > depth)
-		return;
-
 	CFDVoxel* voxel = this->getVoxel(x, y, z, voxels);
 	voxel->data->density = density;
+}
+
+void CFD::CFDGrid::addVelocitySource(Vector3 pos, Vector3 val)
+{
+	CFDVoxel* voxel = this->getVoxelCurrentFrame(pos.x, pos.y, pos.z);
+	voxel->data->velocity = val;
 }
 
 float CFD::CFDGrid::getDensity(int x, int y, int z)
@@ -85,12 +93,7 @@ float CFD::CFDGrid::getDensity(int x, int y, int z)
 	}
 }
 
-void CFD::CFDGrid::updateVelocity(float deltaTime)
-{
-
-}
-
-void CFD::CFDGrid::updateDiffuse(float deltaTime)
+void CFD::CFDGrid::updateDensityDiffuse(float deltaTime)
 {
 	diffuse = deltaTime * diffusionRate * totalVoxels;
 	const float avg = (1 + 6 * diffuse);
@@ -167,7 +170,7 @@ void CFD::CFDGrid::updateDiffuse(float deltaTime)
 	}
 }
 
-void CFD::CFDGrid::updateAdvection(float deltaTime)
+void CFD::CFDGrid::updateDensityAdvection(float deltaTime)
 {
 	CFDVoxel backtracedVoxel;	// Voxel that has been backtraced using the velocity field.
 
@@ -179,11 +182,18 @@ void CFD::CFDGrid::updateAdvection(float deltaTime)
 		{
 			for (int z = 0; z < depth; ++z)
 			{
-				CFDVoxel* currentVoxel = this->getVoxel(x, y, z, voxels);
-				backtracedVoxel = backtracedVoxel - currentVoxel->data->velocity * deltaTime0;	// Backtrace the current voxel back one time step using the velocity it has.
+				CFDVoxel* currentVoxel = this->getVoxelCurrentFrame(x, y, z);
+				Vector3 backtracePos = currentVoxel->position - currentVoxel->data->velocity * deltaTime0;	// Backtrace the current voxel back one time step using the velocity it has.
+
+				backtracePos.x = Math::clamp(backtracePos.x, 1.0f, width - 1);
+				backtracePos.y = Math::clamp(backtracePos.y, 1.0f, height - 1);
+				backtracePos.z = Math::clamp(backtracePos.z, 1.0f, depth - 1);
+
+				backtracedVoxel = *this->getVoxelPreviousFrame(backtracePos.x, backtracePos.y, backtracePos.z);
 
 				// Average its approximate neighbours (x0 being the floor of the x position and x1 being the ceil of the x position).
 				float x0, x1, y0, y1, z0, z1;
+				float floatPartX, floatPartY, floatPartZ;
 				CFDVoxel* voxelX0;
 				CFDVoxel* voxelX1;
 				CFDVoxel* voxelY0;
@@ -192,14 +202,13 @@ void CFD::CFDGrid::updateAdvection(float deltaTime)
 				CFDVoxel* voxelZ1;
 
 				voxelX0 = this->getVoxelPreviousFrame(floor(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
-				voxelX1 = this->getVoxelPreviousFrame(ceil(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
+				voxelX1 = this->getVoxelPreviousFrame(backtracedVoxel.x + 1, backtracedVoxel.y, backtracedVoxel.z);
 
 				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, floor(backtracedVoxel.y), backtracedVoxel.z);
-				voxelY1 = this->getVoxelPreviousFrame(backtracedVoxel.x, ceil(backtracedVoxel.y), backtracedVoxel.z);
+				voxelY1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y + 1, backtracedVoxel.z);
 
 				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, floor(backtracedVoxel.z));
-				voxelZ1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, ceil(backtracedVoxel.z));
-
+				voxelZ1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z + 1);
 
 				x0 = (voxelX0) ? voxelX0->data->density : 0;
 				x1 = (voxelX1) ? voxelX1->data->density : 0;
@@ -210,22 +219,340 @@ void CFD::CFDGrid::updateAdvection(float deltaTime)
 				z0 = (voxelZ0) ? voxelZ0->data->density : 0;
 				z1 = (voxelZ1) ? voxelZ1->data->density : 0;
 
-				float neighbourDensity = x0 + x1 + y0 + y1 + z0 + z1;
 
-				// Average
-				currentVoxel->data->density = neighbourDensity / 6;
+				float intPart = 0.0f;
+
+				// Interp
+				float interp = modff(backtracedVoxel.x, &intPart);
+
+				float XInterp = Math::lerp(x0, x1, interp);
+				float YInterp = Math::lerp(y0, y1, modff(backtracedVoxel.y, &intPart));
+				float ZInterp = Math::lerp(z0,z1,modff(backtracedVoxel.z, &intPart));
+
+				currentVoxel->data->density = XInterp + YInterp + ZInterp / 3;
 			}
 		}	
 	}
 }
 
+void CFD::CFDGrid::velocityStep(float deltaTime)
+{
+	updateVelocityDiffuse(deltaTime);
+
+	//this->printGridInfomation(voxels);
+
+	// TODO: Understand and fix this
+	//updateMassConservation(deltaTime);
+
+	//this->printGridInfomation(voxels);
+
+	updateVelocityAdvection(deltaTime);
+
+	//updateMassConservation(deltaTime);
+}
+
+void CFD::CFDGrid::updateVelocityDiffuse(float deltaTime)
+{
+	float viscosity = deltaTime * visc * totalVoxels;
+	const float avg = (1 + 6 * viscosity);
+
+	CFDVoxel* center = nullptr;
+	CFDVoxel* prevCenter = nullptr;
+	CFDVoxel* left = nullptr;
+	CFDVoxel* right = nullptr;
+	CFDVoxel* up = nullptr;
+	CFDVoxel* down = nullptr;
+	CFDVoxel* front = nullptr;
+	CFDVoxel* back = nullptr;
+
+	Vector3 xVelocity = Vector3();
+	Vector3 yVelocity = Vector3();
+	Vector3 zVelocity = Vector3();
+	Vector3 totalAreaVelocity = Vector3();
+	Vector3 previousFrameVelocity = Vector3();
+
+	Vector3 leftVelocity = Vector3();
+	Vector3 rightVelocity = Vector3();
+	Vector3 upVelocity = Vector3();
+	Vector3 downVelocity = Vector3();
+	Vector3 forwardVelocity = Vector3();
+	Vector3 backVelocity = Vector3();
+
+
+	for (int i = 0; i < 1; i++) // Seems to be for relaxation but idk.
+	{
+		for (int z = 0; z < depth; ++z)
+		{
+			for (int y = 0; y < height; ++y)
+			{
+				for (int x = 0; x < width; ++x)
+				{
+					center = this->getVoxel(x, y, z, voxels);
+					prevCenter = this->getVoxel(x, y, z, voxels0);
+
+					left = this->getVoxel(x - 1, y, z, voxels);
+					leftVelocity = (left) ? left->data->velocity : leftVelocity;
+
+					right = this->getVoxel(x + 1, y, z, voxels);
+					rightVelocity = (right) ? right->data->velocity : rightVelocity;
+
+					up = this->getVoxel(x, y + 1, z, voxels);
+					upVelocity = (up) ? up->data->velocity : upVelocity;
+
+					down = this->getVoxel(x, y - 1, z, voxels);
+					downVelocity = (down) ? down->data->velocity : downVelocity;
+
+					front = this->getVoxel(x, y, z + 1, voxels);
+					forwardVelocity = (front) ? front->data->velocity : forwardVelocity;
+
+					back = this->getVoxel(x, y, z - 1, voxels);
+					backVelocity = (back) ? back->data->velocity : backVelocity;
+
+					previousFrameVelocity = prevCenter->data->velocity;
+
+					// Calculate the diffuse from our neighbours.
+					xVelocity = leftVelocity + rightVelocity;
+					yVelocity = upVelocity + downVelocity;
+					zVelocity = forwardVelocity + backVelocity;
+
+					// Add them up.
+					totalAreaVelocity = xVelocity + yVelocity + zVelocity;
+
+					// Assign the current voxels density to its newly calculated one.
+					center->data->velocity = (previousFrameVelocity + totalAreaVelocity * viscosity) / avg;
+
+					//printf("Calculated Density [%i, %i] \n", x,y);
+				}
+			}
+		}
+	}
+}
+
+void CFD::CFDGrid::updateVelocityAdvection(float deltaTime)
+{
+	CFDVoxel backtracedVoxel;	// Voxel that has been backtraced using the velocity field.
+
+	float deltaTime0 = deltaTime * totalVoxels;
+
+	for (int x = 0; x < width; ++x)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			for (int z = 0; z < depth; ++z)
+			{
+				CFDVoxel* currentVoxel = this->getVoxelCurrentFrame(x, y, z);
+				Vector3 backtracePos = currentVoxel->position - currentVoxel->data->velocity * deltaTime0;	// Backtrace the current voxel back one time step using the velocity it has.
+
+				backtracePos.x = Math::clamp(backtracePos.x, 1.0f, width - 1);
+				backtracePos.y = Math::clamp(backtracePos.y, 1.0f, height - 1);
+				backtracePos.z = Math::clamp(backtracePos.z, 1.0f, depth - 1);
+
+				backtracedVoxel = *this->getVoxelPreviousFrame(backtracePos.x, backtracePos.y, backtracePos.z);
+
+				// Average its approximate neighbours (x0 being the floor of the x position and x1 being the ceil of the x position).
+				Vector3 x0, x1, y0, y1, z0, z1;
+				float floatPartX, floatPartY, floatPartZ;
+				CFDVoxel* voxelX0;
+				CFDVoxel* voxelX1;
+				CFDVoxel* voxelY0;
+				CFDVoxel* voxelY1;
+				CFDVoxel* voxelZ0;
+				CFDVoxel* voxelZ1;
+
+				voxelX0 = this->getVoxelPreviousFrame(floor(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
+				voxelX1 = this->getVoxelPreviousFrame(backtracedVoxel.x + 1, backtracedVoxel.y, backtracedVoxel.z);
+
+				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, floor(backtracedVoxel.y), backtracedVoxel.z);
+				voxelY1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y + 1, backtracedVoxel.z);
+
+				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, floor(backtracedVoxel.z));
+				voxelZ1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z + 1);
+
+				x0 = (voxelX0) ? voxelX0->data->velocity : x0;
+				x1 = (voxelX1) ? voxelX1->data->velocity : x1;
+												
+				y0 = (voxelY0) ? voxelY0->data->velocity : y0;
+				y1 = (voxelY1) ? voxelY1->data->velocity : y1;
+												
+				z0 = (voxelZ0) ? voxelZ0->data->velocity : z0;
+				z1 = (voxelZ1) ? voxelZ1->data->velocity : z1;
+
+
+				float intPart = 0.0f;
+
+				// Interp
+				Vector3 XInterp = Math::vecLerp(x0, x1, modff(backtracedVoxel.x, &intPart));
+				Vector3 YInterp = Math::vecLerp(y0, y1, modff(backtracedVoxel.y, &intPart));
+				Vector3 ZInterp = Math::vecLerp(z0, z1, modff(backtracedVoxel.z, &intPart));
+
+				currentVoxel->data->velocity = XInterp + YInterp + ZInterp / 3;
+			}
+		}
+	}
+}
+
+void CFD::CFDGrid::updateMassConservation(float deltaTime)
+{
+	float invTotalVoxels = 1.0 / totalVoxels;
+
+	CFDVoxel* center = nullptr;
+	CFDVoxel* prevCenter = nullptr;
+	CFDVoxel* left = nullptr;
+	CFDVoxel* right = nullptr;
+	CFDVoxel* up = nullptr;
+	CFDVoxel* down = nullptr;
+	CFDVoxel* front = nullptr;
+	CFDVoxel* back = nullptr;
+
+	Vector3 xVelocity = Vector3();
+	Vector3 yVelocity = Vector3();
+	Vector3 zVelocity = Vector3();
+	Vector3 totalAreaVelocity = Vector3();
+	Vector3 previousFrameVelocity = Vector3();
+
+	Vector3 leftVelocity = Vector3();
+	Vector3 rightVelocity = Vector3();
+	Vector3 upVelocity = Vector3();
+	Vector3 downVelocity = Vector3();
+	Vector3 forwardVelocity = Vector3();
+	Vector3 backVelocity = Vector3();
+
+
+	for (int z = 0; z < depth; ++z)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+				center = this->getVoxel(x, y, z, voxels);
+				prevCenter = this->getVoxel(x, y, z, voxels0);
+
+				left = this->getVoxel(x - 1, y, z, voxels);
+				leftVelocity = (left) ? left->data->velocity : leftVelocity;
+
+				right = this->getVoxel(x + 1, y, z, voxels);
+				rightVelocity = (right) ? right->data->velocity : rightVelocity;
+
+				up = this->getVoxel(x, y + 1, z, voxels);
+				upVelocity = (up) ? up->data->velocity : upVelocity;
+
+				down = this->getVoxel(x, y - 1, z, voxels);
+				downVelocity = (down) ? down->data->velocity : downVelocity;
+
+				front = this->getVoxel(x, y, z + 1, voxels);
+				forwardVelocity = (front) ? front->data->velocity : forwardVelocity;
+
+				back = this->getVoxel(x, y, z - 1, voxels);
+				backVelocity = (back) ? back->data->velocity : backVelocity;
+
+				previousFrameVelocity = prevCenter->data->velocity;
+
+				// Calculate the velocity from our neighbours.
+				xVelocity = leftVelocity + rightVelocity;
+				yVelocity = upVelocity + downVelocity;
+				zVelocity = forwardVelocity + backVelocity;
+
+				// Subtract them.
+				totalAreaVelocity = xVelocity - yVelocity - zVelocity;
+
+				// Assign the current voxels density to its newly calculated one.
+				center->data->velocity = totalAreaVelocity * (-0.5 * invTotalVoxels);
+			}
+		}
+	}
+
+	this->updateVelocityDiffuse(deltaTime);
+
+	for (int z = 0; z < depth; ++z)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+				center = this->getVoxel(x, y, z, voxels);
+				prevCenter = this->getVoxel(x, y, z, voxels0);
+
+				left = this->getVoxel(x - 1, y, z, voxels);
+				leftVelocity = (left) ? left->data->velocity : leftVelocity;
+
+				right = this->getVoxel(x + 1, y, z, voxels);
+				rightVelocity = (right) ? right->data->velocity : rightVelocity;
+
+				up = this->getVoxel(x, y + 1, z, voxels);
+				upVelocity = (up) ? up->data->velocity : upVelocity;
+
+				down = this->getVoxel(x, y - 1, z, voxels);
+				downVelocity = (down) ? down->data->velocity : downVelocity;
+
+				front = this->getVoxel(x, y, z + 1, voxels);
+				forwardVelocity = (front) ? front->data->velocity : forwardVelocity;
+
+				back = this->getVoxel(x, y, z - 1, voxels);
+				backVelocity = (back) ? back->data->velocity : backVelocity;
+
+				previousFrameVelocity = prevCenter->data->velocity;
+
+				// Calculate the velocity from our neighbours.
+				xVelocity = leftVelocity + rightVelocity;
+				yVelocity = upVelocity + downVelocity;
+				zVelocity = forwardVelocity + backVelocity;
+
+				// Subtract them.
+				totalAreaVelocity = xVelocity - yVelocity - zVelocity;
+
+				// Assign the current voxels density to its newly calculated one.
+				center->data->velocity = (totalAreaVelocity * 0.5) / invTotalVoxels;
+			}
+		}
+	}
+}
+
 void CFD::CFDGrid::updateBoundaryVoxels()
 {
-	CFDVoxel* voxel = nullptr;
-	CFDVoxel* adjacentVoxel = nullptr;
+	CFDVoxel* minVoxel = nullptr;
+	CFDVoxel* maxVoxel = nullptr;
 
 	// TODO: Make Boundary conditions.
 	// I.E. Like making the velocity turn inwards once at the boundary to keep it in bounds.
+
+	// X Restraint.
+	for(int z = 0; z < depth; ++z) // across
+	{
+		for (int y = 0; y < height; ++y) // up
+		{
+			maxVoxel = this->getVoxelCurrentFrame(width-1, y, z);
+			minVoxel = this->getVoxelCurrentFrame(0+1, y, z);
+
+			minVoxel->data->velocity.x = 0;
+			maxVoxel->data->velocity.x = 0;
+		}
+	}
+
+	// Y Restraint.
+	for (int x = 0; x < width; ++x) // across
+	{
+		for (int z = 0; z < depth; ++z) // up
+		{
+			maxVoxel = this->getVoxelCurrentFrame(x, height-1, z);
+			minVoxel = this->getVoxelCurrentFrame(x, 0+1, z);
+
+			minVoxel->data->velocity.y = 0;
+			maxVoxel->data->velocity.y = 0;
+		}
+	}
+
+	// Z Restraint.
+	for (int x = 0; x < width; ++x) // across
+	{
+		for (int y = 0; y < height; ++y) // up
+		{
+			maxVoxel = this->getVoxelCurrentFrame(x, y, depth-1);
+			minVoxel = this->getVoxelCurrentFrame(x, y, 0+1);
+
+			minVoxel->data->velocity.z = 0;
+			maxVoxel->data->velocity.z = 0;
+		}
+	}
 }
 
 void CFD::CFDGrid::updatePreviousPreviousFrameVoxels()
@@ -274,14 +601,19 @@ void CFDGrid::Start()
 
 void CFDGrid::Update(float deltaTime)
 {
-	updateDiffuse(0.016f);
-	//updateAdvection(0.016f);
 
-	//updateBoundaryVoxels();
+	updatePreviousPreviousFrameVoxels();
+
+	//this->printGridInfomation(voxels);
+
+	velocityStep(0.016f);
+
+	//this->printGridInfomation(voxels);
+
+	densityStep(0.016f);
 
 	this->printGridInfomation(voxels);
 
-	updatePreviousPreviousFrameVoxels();
 }
 
 void CFDGrid::Render()
