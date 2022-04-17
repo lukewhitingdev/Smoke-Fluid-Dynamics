@@ -351,14 +351,14 @@ void CFD::CFDGrid::updateVelocityAdvection(float deltaTime)
 				backtracePos.y = Math::clamp(backtracePos.y, 0.1f, height - 1);
 				backtracePos.z = Math::clamp(backtracePos.z, 0.1f, depth - 1);
 
-				backtracePos.x = float(round(backtracePos.x));
-				backtracePos.y = float(round(backtracePos.y));
-				backtracePos.z = float(round(backtracePos.z));
+				int roundX = int(round(backtracePos.x));
+				int roundY = int(round(backtracePos.y));
+				int roundZ = int(round(backtracePos.z));
 
-				backtracedVoxel = *this->getVoxelPreviousFrame(backtracePos.x, backtracePos.x, backtracePos.z);
+				backtracedVoxel = *this->getVoxelPreviousFrame(roundX, roundY, roundZ);
 
 				// Average its approximate neighbours (x0 being the floor of the x position and x1 being the ceil of the x position).
-				Vector3 x0, x1, y0, y1, z0, z1;
+				float x0, x1, y0, y1, z0, z1;
 				float floatPartX, floatPartY, floatPartZ;
 				CFDVoxel* voxelX0;
 				CFDVoxel* voxelX1;
@@ -367,32 +367,39 @@ void CFD::CFDGrid::updateVelocityAdvection(float deltaTime)
 				CFDVoxel* voxelZ0;
 				CFDVoxel* voxelZ1;
 
-				voxelX0 = this->getVoxelPreviousFrame(floor(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
+				voxelX0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z);
 				voxelX1 = this->getVoxelPreviousFrame(backtracedVoxel.x + 1, backtracedVoxel.y, backtracedVoxel.z);
 
-				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, floor(backtracedVoxel.y), backtracedVoxel.z);
+				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z);
 				voxelY1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y + 1, backtracedVoxel.z);
 
-				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, floor(backtracedVoxel.z));
+				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z);
 				voxelZ1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z + 1);
 
-				x0 = (voxelX0) ? voxelX0->data->velocity : x0;
-				x1 = (voxelX1) ? voxelX1->data->velocity : x1;
+				x0 = (voxelX0) ? voxelX0->data->velocity.x : 0;
+				x1 = (voxelX1) ? voxelX1->data->velocity.x : 0;
 
-				y0 = (voxelY0) ? voxelY0->data->velocity : y0;
-				y1 = (voxelY1) ? voxelY1->data->velocity : y1;
+				y0 = (voxelY0) ? voxelY0->data->velocity.y : 0;
+				y1 = (voxelY1) ? voxelY1->data->velocity.y: 0;
 
-				z0 = (voxelZ0) ? voxelZ0->data->velocity : z0;
-				z1 = (voxelZ1) ? voxelZ1->data->velocity : z1;
+				z0 = (voxelZ0) ? voxelZ0->data->velocity.z : 0;
+				z1 = (voxelZ1) ? voxelZ1->data->velocity.z : 0;
 
 				float intPart = 0.0f;
 
 				// Interp
-				Vector3 XInterp = Math::vecLerp(x0, x1, modff(backtracedVoxel.x, &intPart));
-				Vector3 YInterp = Math::vecLerp(y0, y1, modff(backtracedVoxel.y, &intPart));
-				Vector3 ZInterp = Math::vecLerp(z0, z1, modff(backtracedVoxel.z, &intPart));
 
-				currentVoxel->data->velocity = XInterp + YInterp + ZInterp;
+				float intepValueX, intepValueY, intepValueZ;
+
+				intepValueX = modff(backtracePos.x, &intPart);
+				intepValueY = modff(backtracePos.y, &intPart);
+				intepValueZ = modff(backtracePos.z, &intPart);
+
+				float XInterp = Math::lerp(x0, x1, intepValueX);
+				float YInterp = Math::lerp(y0, y1, intepValueY);
+				float ZInterp = Math::lerp(z0, z1, intepValueZ);
+
+				currentVoxel->data->velocity = Vector3(XInterp, YInterp, ZInterp);
 			}
 		}
 	}
