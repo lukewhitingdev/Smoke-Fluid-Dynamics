@@ -185,7 +185,6 @@ HRESULT		InitWorld(int width, int height)
     gridComponent->GenerateGrid(w, h, d);
 
     CFD->setGrid(w, h, d);
-    cfd->addVelocitySource(Vector3(2, 3, 0), Vector3(0.0f, 10.0f, 0.0f));
     CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
@@ -262,7 +261,7 @@ void Update()
         return;
 
     cfd->addDensitySource(0, 0, 0, 10.0f);
-
+    cfd->addVelocitySource(Vector3(2, 3, 0), Vector3(0.25f, 10.0f, 0.25f));
 
     for (int i = 0; i < gameObjects.size(); i++)
     {
