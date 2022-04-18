@@ -17,6 +17,16 @@ LineMesh::LineMesh()
 	if (FAILED(direct3D->device->CreateBuffer(&bd, nullptr, &constantBuffer)))
 		throw;
 
+	// Create the constant buffer
+	bd = {};
+	bd.CPUAccessFlags = 0;
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(GridBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	if (FAILED(direct3D->device->CreateBuffer(&bd, nullptr, &gridConstantBuffer)))
+		throw;
+
 	ID3DBlob* pVSBlob = nullptr;
 	if (FAILED(ShaderUtility::CompileShaderFromFile(L"Resources\\LineMeshShader.fx", "VSMain", "vs_4_0", &pVSBlob)))
 	{
@@ -45,13 +55,31 @@ LineMesh::LineMesh()
 	if (FAILED(direct3D->device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &pixelShader)))
 		throw;
 
+	D3D11_BLEND_DESC blendStateDesc{};
+	blendStateDesc.AlphaToCoverageEnable = FALSE;
+	blendStateDesc.IndependentBlendEnable = FALSE;
+	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	if (FAILED(direct3D->device->CreateBlendState(&blendStateDesc, &blendState)))
+		throw;
+
 	// Define the input layout
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		// Instance Pos.
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		// Instance Grid Pos.
+		{ "TEXCOORD", 2, DXGI_FORMAT_R32G32B32_FLOAT, 2, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
@@ -124,8 +152,13 @@ void LineMesh::setMatricies(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* proj
 	matrixBuffer.projection = projection;
 }
 
-void LineMesh::createInstancedGrid(int width, int height, int depth)
+void LineMesh::createInstancedGrid(int w, int h, int d)
 {
+	width = w;
+	height = h;
+	depth = d;
+
+
 	instanceCount = width * height * depth;
 	Instance* instances;
 	instances = new Instance[instanceCount];
@@ -150,6 +183,20 @@ void LineMesh::createInstancedGrid(int width, int height, int depth)
 		}
 	}
 
+	InstanceData* instanceData;
+	instanceData = new InstanceData[instanceCount];
+
+	for (int x = 0; x < width; x++)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int z = 0; z < depth; z++)
+			{
+				instanceData[width * height * z + height * y + x].gridPos = DirectX::XMFLOAT3(x,y,z);
+			}
+		}
+	}
+
 	// Setup instance buffer.
 	D3D11_BUFFER_DESC bd = {};
 	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
@@ -164,6 +211,21 @@ void LineMesh::createInstancedGrid(int width, int height, int depth)
 	if (FAILED(direct3D->device->CreateBuffer(&bd, &instData, &instanceBuffer)))
 		throw;
 
+	// Setup instance data buffer.
+	bd = {};
+	ZeroMemory(&bd, sizeof(D3D11_BUFFER_DESC));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(InstanceData) * instanceCount;
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	instData = {};
+	ZeroMemory(&instData, sizeof(D3D11_SUBRESOURCE_DATA));
+	instData.pSysMem = instanceData;
+
+	if (FAILED(direct3D->device->CreateBuffer(&bd, &instData, &instanceDataBuffer)))
+		throw;
+
+	delete[] instanceData;
 	delete[] instances;
 }
 
@@ -177,28 +239,40 @@ void LineMesh::Update(float deltaTime)
 	cb.mProjection = DirectX::XMMatrixTranspose(XMLoadFloat4x4(matrixBuffer.projection));
 
 	direct3D->immediateContext->UpdateSubresource(constantBuffer, 0, nullptr, &cb, 0, 0);
+
+	GridBuffer gb;
+	gb.gridDimensions.x = width;
+	gb.gridDimensions.y = height;
+	gb.gridDimensions.z = depth;
+
+	direct3D->immediateContext->UpdateSubresource(gridConstantBuffer, 0, nullptr, &gb, 0, 0);
 }
 
 void LineMesh::Render()
 {
+	direct3D->immediateContext->OMSetBlendState(blendState, nullptr, 0xFFFFFFFF);
+
 	// Set the input layout
 	direct3D->immediateContext->IASetInputLayout(vertexLayout);
 
 	// Set vertex buffer
-	UINT strides[2];
-	UINT offsets[2];
-	ID3D11Buffer* buffPointers[2];
+	UINT strides[3];
+	UINT offsets[3];
+	ID3D11Buffer* buffPointers[3];
 
 	strides[0] = sizeof(Vertex);
 	strides[1] = sizeof(Instance);
+	strides[2] = sizeof(InstanceData);
 
 	offsets[0] = 0;
 	offsets[1] = 0;
+	offsets[2] = 0;
 
 	buffPointers[0] = vertexBuffer;
 	buffPointers[1] = instanceBuffer;
+	buffPointers[2] = instanceDataBuffer;
 
-	direct3D->immediateContext->IASetVertexBuffers(0, 2, buffPointers, strides, offsets);
+	direct3D->immediateContext->IASetVertexBuffers(0, 3, buffPointers, strides, offsets);
 
 	// Set index buffer
 	direct3D->immediateContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
@@ -207,6 +281,7 @@ void LineMesh::Render()
 	direct3D->immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 
 	direct3D->immediateContext->VSSetConstantBuffers(0, 1, &constantBuffer);
+	direct3D->immediateContext->PSSetConstantBuffers(1, 1, &gridConstantBuffer);
 
 	// Set the pixel shader.
 	direct3D->immediateContext->VSSetShader(vertexShader, nullptr, 0);

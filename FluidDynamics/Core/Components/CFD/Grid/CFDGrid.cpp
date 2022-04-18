@@ -19,6 +19,7 @@ void CFDGrid::setGrid(long long w, long long h, long long d)
 
 	voxels = new CFDVoxel[totalVoxels];
 	voxels0 = new CFDVoxel[totalVoxels];
+	densityTextureData = new float[totalVoxels];
 
 	int index = 0;
 	for (int z = 0; z < depth; z++)
@@ -596,6 +597,31 @@ void CFD::CFDGrid::updatePreviousPreviousFrameVoxels()
 	memcpy_s(voxels0, sizeof(CFDVoxel) * totalVoxels, voxels, sizeof(CFDVoxel) * totalVoxels);
 }
 
+void CFD::CFDGrid::updateDensityTextureData()
+{
+	for(int x = 0; x < width; ++x)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			for (int z = 0; z < depth; ++z)
+			{
+				densityTextureData[this->getIndex(x, y, z)] = this->getVoxelCurrentFrame(x, y, z)->data->density;
+			}
+		}
+	}
+
+	for (int x = 0; x < width; ++x)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			for (int z = 0; z < depth; ++z)
+			{
+				printf("[%d, %d, %d] %f \n",x,y,z,densityTextureData[this->getIndex(x, y, z)]);
+			}
+		}
+	}
+}
+
 void CFDGrid::Start()
 {
 	D3D* direct3D = D3D::getInstance();
@@ -626,9 +652,9 @@ void CFDGrid::Start()
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
@@ -652,6 +678,8 @@ void CFDGrid::Update(float deltaTime)
 
 	updateBoundaryVoxels();
 
+	updateDensityTextureData();
+
 	printf("\n");
 }
 
@@ -659,7 +687,7 @@ void CFDGrid::Render()
 {
 	D3D* direct3D = D3D::getInstance();
 
-	direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, voxels, width, depth);
+	direct3D->immediateContext->UpdateSubresource(voxelTex, 0, nullptr, densityTextureData, sizeof(float)*width, sizeof(float)*(width*height)*depth);
 	direct3D->immediateContext->PSSetSamplers(0, 1, &sampler);
 	direct3D->immediateContext->PSSetShaderResources(0, 1, &voxelView);
 }

@@ -36,6 +36,10 @@ private:
 		DirectX::XMMATRIX mProjection;
 	};
 
+	int width;
+	int height;
+	int depth;
+
 	std::vector<GameObject*> gridObjects;
 	ID3D11Buffer* constantBuffer = nullptr;
 	MatrixBuffer matrixBuffer;

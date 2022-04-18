@@ -35,11 +35,22 @@ private:
 		DirectX::XMFLOAT3 position;
 	};
 
+	struct InstanceData
+	{
+		DirectX::XMFLOAT3 gridPos;
+	};
+
 	struct MatrixBuffer
 	{
 		MatrixBuffer() : view(), projection() {};
 		DirectX::XMFLOAT4X4* view;
 		DirectX::XMFLOAT4X4* projection;
+	};
+
+	struct GridBuffer
+	{
+		DirectX::XMFLOAT3 gridDimensions;
+		float pad;
 	};
 
 	struct MatrixConstantBuffer
@@ -60,8 +71,16 @@ private:
 	ID3D11Buffer* constantBuffer = nullptr;
 	MatrixBuffer matrixBuffer;
 
+	ID3D11Buffer* gridConstantBuffer = nullptr;
+	GridBuffer gridBuffer;
+
+	ID3D11BlendState* blendState = nullptr;
+
 	ID3D11Buffer* instanceBuffer = nullptr;
+	ID3D11Buffer* instanceDataBuffer = nullptr;
 	int instanceCount = 50*50*50;
+
+	int width, height, depth;
 
 	D3D* direct3D = nullptr;
 };

@@ -98,6 +98,8 @@ namespace CFD
 
 		void updatePreviousPreviousFrameVoxels();
 
+		void updateDensityTextureData();
+
 		float diffusionRate = 1.0f;
 		float visc = 0.2f;
 		float diffuse = 0;
@@ -143,6 +145,8 @@ namespace CFD
 		// Grid.
 		CFDVoxel* voxels;
 		CFDVoxel* voxels0;
+
+		float* densityTextureData;
 
 		// Texture.
 		ID3D11SamplerState* sampler;

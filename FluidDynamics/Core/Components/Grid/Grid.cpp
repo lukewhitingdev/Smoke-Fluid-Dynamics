@@ -31,12 +31,16 @@ void Grid::setMatrices(DirectX::XMFLOAT4X4* world, DirectX::XMFLOAT4X4* view, Di
 
 void Grid::GenerateGrid(const int Xmax, const int Ymax, const int Zmax)
 {
-	const unsigned long vertexBufferSize = Xmax * Ymax * Zmax;
+	width = Xmax;
+	height = Ymax;
+	depth = Zmax;
+
+	const unsigned long vertexBufferSize = width * height * depth;
 
 	GameObject* object = new GameObject();
 	LineMesh* lineMesh = object->addComponent<LineMesh>();
 	lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
-	lineMesh->createInstancedGrid(Xmax, Ymax, Zmax);
+	lineMesh->createInstancedGrid(width, height, depth);
 	object->removeMesh();
 	object->removeMaterial();
 	gridObjects.emplace_back(object);
