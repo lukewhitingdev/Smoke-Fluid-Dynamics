@@ -189,11 +189,15 @@ void CFD::CFDGrid::updateDensityAdvection(float deltaTime)
 				CFDVoxel* currentVoxel = this->getVoxelCurrentFrame(x, y, z);
 				Vector3 backtracePos = currentVoxel->position - currentVoxel->data->velocity * deltaTime0;	// Backtrace the current voxel back one time step using the velocity it has.
 
-				backtracePos.x = Math::clamp(backtracePos.x, 0.5f, width - 1);
-				backtracePos.y = Math::clamp(backtracePos.y, 0.5f, height - 1);
-				backtracePos.z = Math::clamp(backtracePos.z, 0.5f, depth - 1);
+				backtracePos.x = Math::clamp(backtracePos.x, 0.1f, width - 1);
+				backtracePos.y = Math::clamp(backtracePos.y, 0.1f, height - 1);
+				backtracePos.z = Math::clamp(backtracePos.z, 0.1f, depth - 1);
 
-				backtracedVoxel = *this->getVoxelPreviousFrame(backtracePos.x, backtracePos.y, backtracePos.z);
+				int roundX = int(round(backtracePos.x));
+				int roundY = int(round(backtracePos.y));
+				int roundZ = int(round(backtracePos.z));
+
+				backtracedVoxel = *this->getVoxelPreviousFrame(roundX, roundY, roundZ);
 
 				// Average its approximate neighbours (x0 being the floor of the x position and x1 being the ceil of the x position).
 				float x0, x1, y0, y1, z0, z1;
@@ -205,13 +209,13 @@ void CFD::CFDGrid::updateDensityAdvection(float deltaTime)
 				CFDVoxel* voxelZ0;
 				CFDVoxel* voxelZ1;
 
-				voxelX0 = this->getVoxelPreviousFrame(floor(backtracedVoxel.x), backtracedVoxel.y, backtracedVoxel.z);
+				voxelX0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z);
 				voxelX1 = this->getVoxelPreviousFrame(backtracedVoxel.x + 1, backtracedVoxel.y, backtracedVoxel.z);
 
-				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, floor(backtracedVoxel.y), backtracedVoxel.z);
+				voxelY0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z);
 				voxelY1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y + 1, backtracedVoxel.z);
 
-				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, floor(backtracedVoxel.z));
+				voxelZ0 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z);
 				voxelZ1 = this->getVoxelPreviousFrame(backtracedVoxel.x, backtracedVoxel.y, backtracedVoxel.z + 1);
 
 				x0 = (voxelX0) ? voxelX0->data->density : 0;
@@ -223,19 +227,23 @@ void CFD::CFDGrid::updateDensityAdvection(float deltaTime)
 				z0 = (voxelZ0) ? voxelZ0->data->density : 0;
 				z1 = (voxelZ1) ? voxelZ1->data->density : 0;
 
-
 				float intPart = 0.0f;
 
 				// Interp
-				float interp = modff(backtracedVoxel.x, &intPart);
 
-				float XInterp = Math::lerp(x0, x1, interp);
-				float YInterp = Math::lerp(y0, y1, modff(backtracedVoxel.y, &intPart));
-				float ZInterp = Math::lerp(z0,z1,modff(backtracedVoxel.z, &intPart));
+				float intepValueX, intepValueY, intepValueZ;
 
-				currentVoxel->data->density = XInterp + YInterp + ZInterp / 3;
+				intepValueX = modff(backtracePos.x, &intPart);
+				intepValueY = modff(backtracePos.y, &intPart);
+				intepValueZ = modff(backtracePos.z, &intPart);
+
+				float XInterp = Math::lerp(x0, x1, intepValueX);
+				float YInterp = Math::lerp(y0, y1, intepValueY);
+				float ZInterp = Math::lerp(z0, z1, intepValueZ);
+
+				currentVoxel->data->density = XInterp + YInterp + ZInterp;
 			}
-		}	
+		}
 	}
 }
 
