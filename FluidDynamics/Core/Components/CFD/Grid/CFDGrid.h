@@ -100,8 +100,8 @@ namespace CFD
 
 		void updateDensityTextureData();
 
-		float diffusionRate = 1.0f;
-		float visc = 0.2f;
+		float diffusionRate = 0.1f;
+		float visc = 0.1f;
 		float diffuse = 0;
 
 		// Gets the index of a specified x,y,z position in a 1D array.

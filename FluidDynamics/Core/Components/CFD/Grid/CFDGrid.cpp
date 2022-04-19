@@ -56,7 +56,7 @@ CFDVoxel* CFDGrid::getVoxel(int x, int y, int z, CFDVoxel* arr)
 void CFD::CFDGrid::densityStep(float deltaTime)
 {
 	updateDensityDiffuse(deltaTime);
-	updateDensityAdvection(deltaTime);
+	//updateDensityAdvection(deltaTime);
 }
 
 CFDVoxel* CFD::CFDGrid::getVoxelCurrentFrame(int x, int y, int z)
@@ -100,7 +100,7 @@ float CFD::CFDGrid::getDensity(int x, int y, int z)
 
 void CFD::CFDGrid::updateDensityDiffuse(float deltaTime)
 {
-	diffuse = deltaTime * diffusionRate * totalVoxels;
+	diffuse = deltaTime * diffusionRate * totalVoxels * totalVoxels * totalVoxels;
 	const float avg = (1 + 6 * diffuse);
 
 	CFDVoxel* center = nullptr;
@@ -126,7 +126,7 @@ void CFD::CFDGrid::updateDensityDiffuse(float deltaTime)
 	float backDens = 0;
 
 
-	for(int i = 0; i < 20; i++) // Seems to be for relaxation but idk.
+	for(int i = 0; i < 20; ++i) // Seems to be for relaxation but idk.
 	{
 		for (int z = 0; z < depth; ++z)
 		{
@@ -231,7 +231,6 @@ void CFD::CFDGrid::updateDensityAdvection(float deltaTime)
 				float intPart = 0.0f;
 
 				// Interp
-
 				float intepValueX, intepValueY, intepValueZ;
 
 				intepValueX = modff(backtracePos.x, &intPart);
@@ -255,7 +254,7 @@ void CFD::CFDGrid::velocityStep(float deltaTime)
 	//this->printGridInfomation(voxels);
 
 	// TODO: Understand and fix this
-	//updateMassConservation(deltaTime);
+	updateMassConservation(deltaTime);
 
 
 	updateVelocityAdvection(deltaTime);
@@ -610,16 +609,16 @@ void CFD::CFDGrid::updateDensityTextureData()
 		}
 	}
 
-	for (int x = 0; x < width; ++x)
-	{
-		for (int y = 0; y < height; ++y)
-		{
-			for (int z = 0; z < depth; ++z)
-			{
-				printf("[%d, %d, %d] %f \n",x,y,z,densityTextureData[this->getIndex(x, y, z)]);
-			}
-		}
-	}
+	//for (int x = 0; x < width; ++x)
+	//{
+	//	for (int y = 0; y < height; ++y)
+	//	{
+	//		for (int z = 0; z < depth; ++z)
+	//		{
+	//			printf("[%d, %d, %d] %f \n",x,y,z,densityTextureData[this->getIndex(x, y, z)]);
+	//		}
+	//	}
+	//}
 }
 
 void CFDGrid::Start()
@@ -666,21 +665,16 @@ void CFDGrid::Update(float deltaTime)
 
 	updatePreviousPreviousFrameVoxels();
 
-	velocityStep(0.016f);
-
-	printf("Post Velocity Step");
-	this->printGridInfomation(voxels);
+	//velocityStep(0.016f);
 
 	densityStep(0.016f);
-
-	printf("Post Density Step");
-	this->printGridInfomation(voxels);
 
 	updateBoundaryVoxels();
 
 	updateDensityTextureData();
 
-	printf("\n");
+	//this->printGridInfomation(voxels);
+	//printf("\n");
 }
 
 void CFDGrid::Render()
