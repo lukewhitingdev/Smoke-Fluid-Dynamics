@@ -63,6 +63,16 @@ namespace CFD
 		VoxelData<float>* velocityY;
 	};
 
+	// Helper struct to contain general data about the voxel for editing through UI.
+	struct CFDVoxel
+	{
+		CFDVoxel(Vector3 pos, float dens, Vector3 velo) : position(pos), density(dens), velocity(velo) {};
+		CFDVoxel() : position(), density(), velocity() {};
+		Vector3 position;
+		float density;
+		Vector3 velocity;
+	};
+
 	class CFDGrid : public Component
 	{
 	public:
@@ -84,6 +94,14 @@ namespace CFD
 		void addDensity(const Vector3& pos, const float val) { voxels->density->setPreviousValue(pos, val); }
 
 		void addVelocity(const Vector3& pos, const Vector3& val) { voxels->velocityX->setPreviousValue(pos, val.x); voxels->velocityY->setPreviousValue(pos, val.y); }
+
+		int getGridSize() { return N * N; }
+		int getGridWidth() { return N; }
+		int getGridHeight() { return N; }
+		void setDiffusionRate(float val) { diffusionRate = val; }
+		void setViscocity(float val) { viscocity = val; }
+
+		CFDVoxel getVoxel(const Vector3& pos);
 
 	private:
 		
@@ -113,9 +131,11 @@ namespace CFD
 		void setDebugVelocityValues();
 		void setDebugDensityValues();
 
+		bool simulating = false;
+
 		int N;
-		const int viscocity = 0.0f;
-		const int diffusionRate = 0.0f;
+		int viscocity = 0.0f;
+		int diffusionRate = 0.0f;
 
 		CFDData* voxels = nullptr;
 

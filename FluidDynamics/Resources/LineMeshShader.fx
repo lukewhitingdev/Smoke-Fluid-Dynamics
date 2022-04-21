@@ -8,6 +8,7 @@ cbuffer ConstantBuffer : register(b0)
 cbuffer GridBuffer : register(b1)
 {
     float3 gridDimensions;
+    float3 selectedItem;
 }
 
 struct VS_INPUT
@@ -50,8 +51,12 @@ PS_INPUT VSMain(VS_INPUT input)
 float4 PSMain(PS_INPUT input) : SV_TARGET
 {   
     float3 xyz = float3(0, 0, 0);
+    if (selectedItem.x == input.gridPos.x && selectedItem.y == input.gridPos.y)
+    {
+        return float4(255, 255, 0, 255);
+    }
     
-    input.gridPos.x /= gridDimensions.x;    
+    input.gridPos.x /= gridDimensions.x;
     input.gridPos.y /= gridDimensions.y;
     
     float yeet = txDensity.Sample(sam, input.gridPos.xyz);
@@ -63,9 +68,9 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     float mag = sqrt(pow(yeet2.x, 2) + pow(yeet2.y, 2) + pow(yeet2.z, 2));
     
     mag *= 255;
+            
+    return float4(yeet, 0, 0, 255);
     
-    if(yeet < 0.01)
-        yeet = 0;
-    
-    return float4(mag, 0, 0, 255);
+
+
 }

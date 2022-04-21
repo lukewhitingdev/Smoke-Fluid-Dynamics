@@ -27,11 +27,17 @@
 #include <Core/Components/LineMesh/LineMesh.h>
 #include <Core/Components/CFD/Grid/CFDGrid.h>
 
+#include "Dependencies\UI\IMGUI\imgui.h"
+#include "Dependencies\UI\IMGUI\imgui_impl_dx11.h"
+#include "Dependencies\UI\IMGUI\imgui_impl_win32.h"
+
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
 HRESULT	InitMesh();
 HRESULT	InitWorld(int width, int height);
+void InitUI();
+void RenderUI();
 void CleanupDevice();
 void Update();
 void Render();
@@ -74,6 +80,8 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
         CleanupDevice();
         return 0;
     }
+
+    InitUI();
 
     InitMesh();
 
@@ -142,6 +150,8 @@ HRESULT		InitMesh()
 GameObject* camera;
 GameObject* grid;
 CFD::CFDGrid* cfd;
+Grid* gridComponent;
+Camera* cam;
 
 // ***************************************************************************************
 // InitWorld
@@ -162,7 +172,7 @@ HRESULT		InitWorld(int width, int height)
     camera = new GameObject("Camera");
     camera->setRenderable(false);
     camera->setUpdateable(true);
-    Camera* cam = camera->addComponent<Camera>();
+    cam = camera->addComponent<Camera>();
     cam->setTransfrom(camera->getTransform());
     camera->setPosition(DirectX::XMFLOAT3(0.0f, 0.0f, -3.0f));
     cam->updateProjection(width, height);
@@ -173,22 +183,120 @@ HRESULT		InitWorld(int width, int height)
     grid = new GameObject("Grid");
     grid->removeMesh();
     grid->removeMaterial();
-    Grid* gridComponent = grid->addComponent<Grid>();
+    gridComponent = grid->addComponent<Grid>();
     CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
     cfd = CFD;
-    
-    int size = 24;
-
+   
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridComponent->GenerateGrid(size, size, 1);
-
-    CFD->setGrid(size);
-    CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     gameObjects.emplace_back(grid);
 
 	return S_OK;
+}
+
+void InitUI()
+{
+    // Init IMGUI
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplWin32_Init(window->windowHandle);
+    ImGui_ImplDX11_Init(direct3D->device, direct3D->immediateContext);
+}
+
+void RenderUI()
+{
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    // Draw Stuff.
+    static int selectedPosX;
+    static int selectedPosY;
+    static bool editingVoxel;
+
+    ImGui::Begin("Voxel Controls");
+    ImGui::SliderInt("Select Voxel X", &selectedPosX, 0, cfd->getGridWidth());
+    ImGui::SliderInt("Select Voxel Y", &selectedPosY, 0, cfd->getGridHeight());
+
+    CFD::CFDVoxel vox = cfd->getVoxel(Vector3(selectedPosX, selectedPosY, 0));
+
+    if (editingVoxel == false)
+    {
+        // Non editing mode.
+
+        ImGui::Text("Voxel Data:");
+        ImGui::Text("Position: %d, %d, %d", vox.position.x, vox.position.y, vox.position.z);
+        ImGui::Text("Density: %f", vox.density);
+        ImGui::Text("Velocity: %f, %f, %f", vox.velocity.x, vox.velocity.y, vox.velocity.z);
+
+        if (ImGui::Button("Edit"))
+        {
+            editingVoxel = true;
+        }
+    }
+    else
+    {
+        // Editing mode.
+
+        static float veloEdit[3];
+        static float editedDens;
+
+        ImGui::Text("Edit Voxel Data:");
+        ImGui::SliderFloat("Density", &editedDens, 0, 150);
+        ImGui::SliderFloat3("Velocity", veloEdit, 0, 150);
+
+        if(ImGui::Button("Add"))
+        {
+            cfd->addVelocity(vox.position, Vector3(veloEdit[0], veloEdit[1], veloEdit[2]));
+            cfd->addDensity(vox.position, editedDens);
+        }
+
+        if (ImGui::Button("Back"))
+        {
+            editingVoxel = false;
+        }
+    }
+
+
+    gridComponent->setSelectedGridItem(Vector3(selectedPosX, selectedPosY, 0));
+
+    ImGui::End();
+
+    static int domainSize;
+    static float diffusionRate;
+    static float viscocityRate;
+
+    ImGui::Begin("Domain Controls");
+    ImGui::InputInt("Size", &domainSize);
+
+    ImGui::SliderFloat("Diffusion Rate", &diffusionRate, 0, 10);
+    cfd->setDiffusionRate(diffusionRate);
+
+    ImGui::SliderFloat("Viscocity Rate", &viscocityRate, 0, 10);
+    cfd->setViscocity(viscocityRate);
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Save"))
+    {
+        gridComponent->GenerateGrid(domainSize, domainSize, 1);
+
+        cfd->setGrid(domainSize);
+        cfd->Start();
+    };
+
+
+    ImGui::End();
+
+    ImGui::Begin("Stats");
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 
@@ -309,6 +417,8 @@ void Render()
 
         gameObjects[i]->draw();
     }
+
+    RenderUI();
 
     // Present our back buffer to our front buffer
     direct3D->swapChain->Present( 0, 0 );

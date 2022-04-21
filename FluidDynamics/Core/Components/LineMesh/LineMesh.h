@@ -15,6 +15,8 @@ public:
 	void createInstancedGrid(int width, int height, int depth);
 	void setInstanceSize(int size) { instanceCount = size; };
 
+	void setSelectedItem(DirectX::XMFLOAT3 val) { selectedMesh = val; };
+
 	void Render();
 	void Update(float deltaTime);
 
@@ -49,8 +51,9 @@ private:
 
 	struct GridBuffer
 	{
-		DirectX::XMFLOAT3 gridDimensions;
-		float pad;
+		DirectX::XMVECTOR gridDimensions;
+		DirectX::XMVECTOR selectedGridItem;
+		float pad[2];
 	};
 
 	struct MatrixConstantBuffer
@@ -59,6 +62,8 @@ private:
 		DirectX::XMMATRIX mView;
 		DirectX::XMMATRIX mProjection;
 	};
+
+	DirectX::XMFLOAT3 selectedMesh;
 
 	ID3D11Buffer* vertexBuffer = nullptr;
 	ID3D11Buffer* indexBuffer = nullptr;

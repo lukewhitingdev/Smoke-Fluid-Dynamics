@@ -241,9 +241,9 @@ void LineMesh::Update(float deltaTime)
 	direct3D->immediateContext->UpdateSubresource(constantBuffer, 0, nullptr, &cb, 0, 0);
 
 	GridBuffer gb;
-	gb.gridDimensions.x = width;
-	gb.gridDimensions.y = height;
-	gb.gridDimensions.z = depth;
+	DirectX::XMFLOAT3 dim(width, height, depth);
+	gb.gridDimensions = DirectX::XMLoadFloat3(&dim);
+	gb.selectedGridItem = DirectX::XMLoadFloat3(&selectedMesh);
 
 	direct3D->immediateContext->UpdateSubresource(gridConstantBuffer, 0, nullptr, &gb, 0, 0);
 }

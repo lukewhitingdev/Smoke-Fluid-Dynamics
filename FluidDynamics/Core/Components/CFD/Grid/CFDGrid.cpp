@@ -14,6 +14,8 @@ CFDGrid::~CFDGrid()
 
 void CFDGrid::Start()
 {
+	simulating = true;
+
 	D3D* direct3D = D3D::getInstance();
 
 	D3D11_TEXTURE3D_DESC texDesc = {};
@@ -78,51 +80,67 @@ void CFDGrid::Start()
 static int frame;
 void CFDGrid::Update(float deltaTime)
 {
-	//printf("Frame %d \n", frame);
+	if(simulating)
+	{
+		//printf("Frame %d \n", frame);
 
-	resetValuesForCurrentFrame();
+		resetValuesForCurrentFrame();
+		velocityStep(0.1f);
+		densityStep(0.1f);
 
-	this->addVelocity(Vector3(1, 2, 0), Vector3(10, 0, 0));
-	this->addDensity(Vector3(1, 2, 0), 10);
+		//printGrid();
 
-	velocityStep(0.1f);
-	densityStep(0.1f);
-
-	//printGrid();
-
-	frame++;
+		frame++;
+	}
 }
 
 void CFDGrid::Render()
 {
-	D3D* direct3D = D3D::getInstance();
-
-	// Move density data into proper texture format.
-	int index = 0;
-	for (int y = 0; y < N; ++y)
+	if (simulating)
 	{
-		for (int x = 0; x < N; ++x)
+		D3D* direct3D = D3D::getInstance();
+
+		// Move density data into proper texture format.
+		int index = 0;
+		for (int y = 0; y < N; ++y)
 		{
-			densityTextureData[index] = voxels->density->getCurrentValue(Vector3(x, y, 0));
+			for (int x = 0; x < N; ++x)
+			{
+				densityTextureData[index] = voxels->density->getCurrentValue(Vector3(x, y, 0));
 
-			float xVelo, yVelo;
-			xVelo = voxels->velocityX->getCurrentValue(Vector3(x, y, 0));
-			yVelo = voxels->velocityY->getCurrentValue(Vector3(x, y, 0));
+				float xVelo, yVelo;
+				xVelo = voxels->velocityX->getCurrentValue(Vector3(x, y, 0));
+				yVelo = voxels->velocityY->getCurrentValue(Vector3(x, y, 0));
 
-			velocityTextureData[index] = Vector4(xVelo, yVelo, 0, 0);
-			index++;
+				velocityTextureData[index] = Vector4(xVelo, yVelo, 0, 0);
+				index++;
+			}
 		}
+
+
+		direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, 1);
+
+		// Seems to be issue with alignment or offset when setting the resource.
+		direct3D->immediateContext->UpdateSubresource(voxelVeloTex, 0, nullptr, velocityTextureData, sizeof(Vector4) * N, 1);
+
+		direct3D->immediateContext->PSSetSamplers(0, 1, &sampler);
+		direct3D->immediateContext->PSSetShaderResources(0, 1, &voxelDensView);
+		direct3D->immediateContext->PSSetShaderResources(1, 1, &voxelVeloView);
 	}
+}
 
-
-	direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, 1);
-
-	// Seems to be issue with alignment or offset when setting the resource.
-	direct3D->immediateContext->UpdateSubresource(voxelVeloTex, 0, nullptr, velocityTextureData, sizeof(Vector4) * N, 1);
-
-	direct3D->immediateContext->PSSetSamplers(0, 1, &sampler);
-	direct3D->immediateContext->PSSetShaderResources(0, 1, &voxelDensView);
-	direct3D->immediateContext->PSSetShaderResources(1, 1, &voxelVeloView);
+CFDVoxel CFD::CFDGrid::getVoxel(const Vector3& pos)
+{
+	CFDVoxel vox = CFDVoxel();
+	if(simulating)
+	{
+		vox.position = pos;
+		vox.density = voxels->density->getCurrentValue(pos);
+		vox.velocity = Vector3(voxels->velocityX->getCurrentValue(pos),
+			voxels->velocityY->getCurrentValue(pos),
+			0);
+	}
+	return vox;
 }
 
 void CFD::CFDGrid::resetValuesForCurrentFrame()

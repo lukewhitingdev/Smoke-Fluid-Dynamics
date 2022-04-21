@@ -369,6 +369,12 @@
     <ClCompile Include="Core\Entities\GameObject.cpp" />
     <ClCompile Include="Core\Components\Grid\Grid.cpp" />
     <ClCompile Include="Core\Components\LineMesh\LineMesh.cpp" />
+    <ClCompile Include="Dependencies\UI\IMGUI\imgui.cpp" />
+    <ClCompile Include="Dependencies\UI\IMGUI\imgui_draw.cpp" />
+    <ClCompile Include="Dependencies\UI\IMGUI\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Dependencies\UI\IMGUI\imgui_impl_win32.cpp" />
+    <ClCompile Include="Dependencies\UI\IMGUI\imgui_tables.cpp" />
+    <ClCompile Include="Dependencies\UI\IMGUI\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Core\Components\Test\TestComponent.cpp" />
     <ClCompile Include="Core\Components\Transform\Transform.cpp" />
@@ -390,6 +396,14 @@
     <ClInclude Include="Core\Entities\GameObject.h" />
     <ClInclude Include="Core\Components\Grid\Grid.h" />
     <ClInclude Include="Core\Components\LineMesh\LineMesh.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imconfig.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imgui.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imgui_impl_dx11.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imgui_impl_win32.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imgui_internal.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imstb_rectpack.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imstb_textedit.h" />
+    <ClInclude Include="Dependencies\UI\IMGUI\imstb_truetype.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Core\Components\Mesh\Mesh.h" />
     <ClInclude Include="Core\Components\Material\Material.h" />

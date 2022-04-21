@@ -17,6 +17,8 @@ public:
 
 	void GenerateGrid(const int Xmax, const int Ymax, const int Zmax);
 
+	void setSelectedGridItem(DirectX::XMFLOAT3 pos) { if(lineMeshComponent) lineMeshComponent->setSelectedItem(pos); };
+
 	void Render();
 	void Update(float deltaTime);
 
@@ -35,12 +37,13 @@ private:
 		DirectX::XMMATRIX mView;
 		DirectX::XMMATRIX mProjection;
 	};
-
+	
 	int width;
 	int height;
 	int depth;
 
-	std::vector<GameObject*> gridObjects;
+	GameObject* lineMeshInstancer = nullptr;
+	LineMesh* lineMeshComponent = nullptr;
 	ID3D11Buffer* constantBuffer = nullptr;
 	MatrixBuffer matrixBuffer;
 	D3D* direct3D = nullptr;

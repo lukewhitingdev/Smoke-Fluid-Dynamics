@@ -1,5 +1,7 @@
 #pragma once
 #include <algorithm>
+#include <d3d11.h>
+#include <DirectXMath.h>
 
 // TODO: Intergrate this with the other classes.
 class Vector3
@@ -43,6 +45,11 @@ public:
 	{
 		return Vector3(-x, -y, -z);
 	};
+
+	operator DirectX::XMFLOAT3()
+	{
+		return DirectX::XMFLOAT3(x, y, z);
+	}
 };
 
 class Vector4

@@ -2,12 +2,23 @@
 #include "Utility/Direct3D/Headers/D3D.h"
 #include "Utility/Input System/InputSystem.h"
 
+#include "Dependencies\UI\IMGUI\imgui.h"
+#include "Dependencies\UI\IMGUI/imgui_impl_dx11.h"
+#include "Dependencies\UI\IMGUI/imgui_impl_win32.h"
+
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 //--------------------------------------------------------------------------------------
 // Called every time the application receives a message
 //--------------------------------------------------------------------------------------
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        return true;
+
     static bool lockCursor;
 
     PAINTSTRUCT ps;

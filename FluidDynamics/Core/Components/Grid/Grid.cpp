@@ -37,31 +37,24 @@ void Grid::GenerateGrid(const int Xmax, const int Ymax, const int Zmax)
 
 	const unsigned long vertexBufferSize = width * height * depth;
 
-	GameObject* object = new GameObject();
-	LineMesh* lineMesh = object->addComponent<LineMesh>();
-	lineMesh->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
-	lineMesh->createInstancedGrid(width, height, depth);
-	object->removeMesh();
-	object->removeMaterial();
-	gridObjects.emplace_back(object);
+	lineMeshInstancer = new GameObject();
+	lineMeshComponent = lineMeshInstancer->addComponent<LineMesh>();
+	lineMeshComponent->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
+	lineMeshComponent->createInstancedGrid(width, height, depth);
+	lineMeshInstancer->removeMesh();
+	lineMeshInstancer->removeMaterial();
 }
 
 void Grid::Render()
 {
-	// Loop through all cubes in our grid and render them since they will not render on their own.
-	for(int i = 0; i < gridObjects.size(); i++)
-	{
-		gridObjects[i]->draw();
-	}
+	if(lineMeshInstancer)
+		lineMeshInstancer->draw();
 }
 
 void Grid::Update(float deltaTime)
 {
-	// Loop through all cubes in our grid and render them since they will not render on their own.
-	for (int i = 0; i < gridObjects.size(); i++)
-	{
-		gridObjects[i]->update(deltaTime);
-	}
+	if (lineMeshInstancer)
+		lineMeshInstancer->update(deltaTime);
 
 	MatrixConstantBuffer cb;
 	cb.mWorld = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(static_cast<GameObject*>(getParent())->getTransform()->getWorld()));
