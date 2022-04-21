@@ -73,6 +73,16 @@ namespace CFD
 		Vector3 velocity;
 	};
 
+	template<typename T>
+	struct QueueItem
+	{
+		QueueItem(Vector3 pos, T val) : pos(pos), value(val) {};
+		QueueItem() : pos(), value() {};
+		Vector3 pos;
+		T value;
+	};
+
+
 	class CFDGrid : public Component
 	{
 	public:
@@ -91,9 +101,8 @@ namespace CFD
 		void Update(float deltaTime);
 		void Render();
 
-		void addDensity(const Vector3& pos, const float val) { voxels->density->setPreviousValue(pos, val); }
-
-		void addVelocity(const Vector3& pos, const Vector3& val) { voxels->velocityX->setPreviousValue(pos, val.x); voxels->velocityY->setPreviousValue(pos, val.y); }
+		void addDensity(const Vector3& pos, const float val);
+		void addVelocity(const Vector3& pos, const Vector3& val);
 
 		int getGridSize() { return N * N; }
 		int getGridWidth() { return N; }
@@ -107,6 +116,8 @@ namespace CFD
 		
 		// Simulation Steps.
 		void resetValuesForCurrentFrame();
+
+		void updateForces();
 
 		void densityStep(float deltaTime);
 
@@ -138,6 +149,8 @@ namespace CFD
 		int diffusionRate = 0.0f;
 
 		CFDData* voxels = nullptr;
+		std::vector<QueueItem<float>> queuedDensities;
+		std::vector<QueueItem<Vector3>> queuedVelocities;
 
 		float* densityTextureData = nullptr;
 		Vector4* velocityTextureData = nullptr;

@@ -85,6 +85,9 @@ void CFDGrid::Update(float deltaTime)
 		//printf("Frame %d \n", frame);
 
 		resetValuesForCurrentFrame();
+
+		updateForces();
+
 		velocityStep(0.1f);
 		densityStep(0.1f);
 
@@ -129,6 +132,16 @@ void CFDGrid::Render()
 	}
 }
 
+void CFD::CFDGrid::addDensity(const Vector3& pos, const float val)
+{
+	queuedDensities.emplace_back(QueueItem<float>(pos, val));
+}
+
+void CFD::CFDGrid::addVelocity(const Vector3& pos, const Vector3& val)
+{
+	queuedVelocities.emplace_back(QueueItem<Vector3>(pos, val));
+}
+
 CFDVoxel CFD::CFDGrid::getVoxel(const Vector3& pos)
 {
 	CFDVoxel vox = CFDVoxel();
@@ -156,6 +169,20 @@ void CFD::CFDGrid::resetValuesForCurrentFrame()
 				voxels->velocityX->setCurrentValue(Vector3(x, y, z), 0);
 			}
 		}
+	}
+}
+
+void CFD::CFDGrid::updateForces()
+{
+	for(const auto& dens : queuedDensities)
+	{
+		voxels->density->setPreviousValue(dens.pos, voxels->density->getPreviousValue(dens.pos) + dens.value);
+	}
+
+	for (const auto& velo : queuedVelocities)
+	{
+		voxels->velocityX->setPreviousValue(velo.pos, voxels->velocityX->getPreviousValue(velo.pos) + velo.value.x);
+		voxels->velocityY->setPreviousValue(velo.pos, voxels->velocityY->getPreviousValue(velo.pos) + velo.value.y);
 	}
 }
 
