@@ -25,7 +25,8 @@ struct PS_INPUT
     float3 gridPos : LOCALPOSITION;
 };
 
-Texture3D txCFD;
+Texture3D txDensity : register(t0);
+Texture3D txVelocity : register(t1);
 SamplerState sam;
 
 PS_INPUT VSMain(VS_INPUT input)
@@ -53,9 +54,14 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     input.gridPos.x /= gridDimensions.x;    
     input.gridPos.y /= gridDimensions.y;
     
-    float yeet = txCFD.Sample(sam, input.gridPos.xyz);
+    float yeet = txDensity.Sample(sam, input.gridPos.xyz);
+    float3 yeet2 = txVelocity.Sample(sam, input.gridPos.xyz).xyz;
     
-    yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
+    //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
+    //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     
-    return float4(yeet, 0, 0, 1);
+    if(yeet < 0.01)
+        yeet = 0;
+    
+    return float4(yeet2.x, yeet2.y, yeet2.z, 255);
 }

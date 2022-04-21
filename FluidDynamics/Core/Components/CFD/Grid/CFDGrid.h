@@ -45,22 +45,22 @@ namespace CFD
 
 		int N;
 
-		T* curr;
-		T* prev;
+		T* curr = nullptr;
+		T* prev = nullptr;
 	};
 
 	struct CFDData
 	{
 		CFDData(const int size)
 		{
-			density = VoxelData<float>(size);
-			velocityX = VoxelData<float>(size);
-			velocityY = VoxelData<float>(size);
+			density = new VoxelData<float>(size);
+			velocityX = new VoxelData<float>(size);
+			velocityY = new VoxelData<float>(size);
 		};
 
-		VoxelData<float> density;
-		VoxelData<float> velocityX;
-		VoxelData<float> velocityY;
+		VoxelData<float>* density;
+		VoxelData<float>* velocityX;
+		VoxelData<float>* velocityY;
 	};
 
 	class CFDGrid : public Component
@@ -74,14 +74,16 @@ namespace CFD
 		void setGrid(const int size) {
 			N = size; 
 			voxels = new CFDData(N);
+			densityTextureData = new float[N*N];
+			velocityTextureData = new Vector4[N * N];
 		};
 
 		void Update(float deltaTime);
 		void Render();
 
-		void addDensity(const Vector3& pos, const float val) { voxels->density.setPreviousValue(pos, val); }
+		void addDensity(const Vector3& pos, const float val) { voxels->density->setPreviousValue(pos, val); }
 
-		void addVelocity(const Vector3& pos, const Vector3& val) { voxels->velocityX.setPreviousValue(pos, val.x); voxels->velocityY.setPreviousValue(pos, val.y); }
+		void addVelocity(const Vector3& pos, const Vector3& val) { voxels->velocityX->setPreviousValue(pos, val.x); voxels->velocityY->setPreviousValue(pos, val.y); }
 
 	private:
 		
@@ -99,8 +101,9 @@ namespace CFD
 			{
 				for (int x = 0; x < N; ++x)
 				{
-					int index = ((x)+(N + 2) * (y));
-					printf(" [%f] ", voxels->density.getCurrentArray()[index]);
+					printf("(%d, %d) [%f] [%f,%f] ", x,y, voxels->density->getCurrentValue(Vector3(x,y,0)), 
+														  voxels->velocityX->getCurrentValue(Vector3(x,y,0)),
+														  voxels->velocityY->getCurrentValue(Vector3(x, y, 0)));
 				}
 				printf("\n");
 			}
@@ -111,15 +114,23 @@ namespace CFD
 		const int viscocity = 0.0f;
 		const int diffusionRate = 1.0f;
 
-		CFDData* voxels;
+		CFDData* voxels = nullptr;
 
-		float* densityTextureData;
+		float* densityTextureData = nullptr;
+		Vector4* velocityTextureData = nullptr;
 
 		// Texture.
-		ID3D11SamplerState* sampler;
-		ID3D11Texture3D* voxelTex;
-		ID3D11Resource* voxelResource;
-		ID3D11ShaderResourceView* voxelView;
+		ID3D11SamplerState* sampler = nullptr;
+
+		// Density
+		ID3D11Texture3D* voxelDensTex = nullptr;
+		ID3D11Resource* voxelDensResource = nullptr;
+		ID3D11ShaderResourceView* voxelDensView = nullptr;
+
+		// Velocity
+		ID3D11Texture3D* voxelVeloTex = nullptr;
+		ID3D11Resource* voxelVeloResource = nullptr;
+		ID3D11ShaderResourceView* voxelVeloView = nullptr;
 	};
 }
 

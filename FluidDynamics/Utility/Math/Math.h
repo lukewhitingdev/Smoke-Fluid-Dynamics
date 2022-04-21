@@ -2,8 +2,9 @@
 #include <algorithm>
 
 // TODO: Intergrate this with the other classes.
-struct Vector3
+class Vector3
 {
+public:
 	Vector3(float x, float y, float z) : x(x), y(y), z(z) {};
 	Vector3() : x(0), y(0), z(0) {};
 	float x, y, z;
@@ -42,8 +43,14 @@ struct Vector3
 	{
 		return Vector3(-x, -y, -z);
 	};
+};
 
-
+class Vector4
+{
+public:
+	Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {};
+	Vector4() : x(0), y(0), z(0), w(0) {};
+	float x, y, z, w;
 };
 
 class Math

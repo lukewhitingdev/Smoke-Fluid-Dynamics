@@ -177,14 +177,12 @@ HRESULT		InitWorld(int width, int height)
     CFD::CFDGrid* CFD = grid->addComponent<CFD::CFDGrid>();
     cfd = CFD;
     
-    int w = 6;
-    int h = 4;
-    int d = 1;
+    int size = 4;
 
     gridComponent->setMatrices(grid->getTransform()->getWorld(), cam->getViewMatrix(), cam->getProjectionMatrix());
-    gridComponent->GenerateGrid(w, h, d);
+    gridComponent->GenerateGrid(size, size, 1);
 
-    CFD->setGrid(w);
+    CFD->setGrid(size);
     CFD->Start();
 
     grid->getTransform()->setPosition(DirectX::XMFLOAT3(0, 0, 0));
@@ -254,20 +252,27 @@ void setupLightForRender()
 }
 
 MatrixBuffer cb;
+float i = 0;
 void Update()
 {
     float t = TimeUtility::getDeltaTime(); // capped at 60 fps
     if (t == 0.0f)
         return;
 
-    cfd->addDensity(Vector3(1, 2, 1), 1000.0f);
-    //cfd->addVelocity(Vector3(1, 2, 0), Vector3(0.1f, 0.1f, 0.25f));
+    float yeet = sin(i);
+
+    yeet = 10.0f;
+
+    //cfd->addDensity(Vector3(1, 2, 1), 10.0f);
+    //cfd->addVelocity(Vector3(1, 2, 0), Vector3(yeet, 0.0f, 0.0f));
 
     for (int i = 0; i < gameObjects.size(); i++)
     {
         // Update the cube transform, material etc. 
         gameObjects[i]->update(t);
     }
+
+    i += t;
 }
 
 //--------------------------------------------------------------------------------------
@@ -276,7 +281,7 @@ void Update()
 void Render()
 {
     // Clear the back buffer
-    direct3D->immediateContext->ClearRenderTargetView( direct3D->renderTargetView, Colors::MidnightBlue );
+    direct3D->immediateContext->ClearRenderTargetView( direct3D->renderTargetView, Colors::White );
 
     // Clear the depth buffer to 1.0 (max depth)
     direct3D->immediateContext->ClearDepthStencilView(direct3D->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );

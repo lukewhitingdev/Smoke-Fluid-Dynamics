@@ -60,13 +60,16 @@ void GameObject::draw()
 	{
 		for (auto it = components.begin(); it != components.end(); it++)
 		{
-			std::vector<Component*>* componentVector = &it->second;
-			for (int i = 0; i < componentVector->size(); i++)
+			if(&it->second != nullptr)
 			{
-				Component* component = componentVector->at(i);
-				if(component->getRenderable())
+				std::vector<Component*>* componentVector = &it->second;
+				for (int i = 0; i < componentVector->size(); i++)
 				{
-					component->Render();
+					Component* component = componentVector->at(i);
+					if (component->getRenderable())
+					{
+						component->Render();
+					}
 				}
 			}
 		}
