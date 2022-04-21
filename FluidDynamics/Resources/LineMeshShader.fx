@@ -60,8 +60,12 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     
+    float mag = sqrt(pow(yeet2.x, 2) + pow(yeet2.y, 2) + pow(yeet2.z, 2));
+    
+    mag *= 255;
+    
     if(yeet < 0.01)
         yeet = 0;
     
-    return float4(yeet2.x, yeet2.y, yeet2.z, 255);
+    return float4(mag, 0, 0, 255);
 }

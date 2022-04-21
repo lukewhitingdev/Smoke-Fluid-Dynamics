@@ -75,124 +75,22 @@ void CFDGrid::Start()
 
 }
 
-static int scIndex = 0;
-static float o = 0;
+static int frame;
 void CFDGrid::Update(float deltaTime)
 {
+	//printf("Frame %d \n", frame);
+
 	resetValuesForCurrentFrame();
 
-	
-	o += deltaTime;
-	float val = sin(o);
-
-	printf("%f \n",val);
-
-	this->addVelocity(Vector3(1, 2, 0), Vector3(val, 1, 0));
+	this->addVelocity(Vector3(1, 2, 0), Vector3(10, 0, 0));
 	this->addDensity(Vector3(1, 2, 0), 10);
 
 	velocityStep(0.1f);
 	densityStep(0.1f);
 
-	//if(scIndex < 5)
-	//{
-	//	printf("Frame: %d \n", scIndex);
-	//	printGrid();
-	//}
-
-	//scIndex++;
-
-
-
-	//voxels->density->setCurrentValue(Vector3(0, 1, 0), 01);
-	//voxels->density->setCurrentValue(Vector3(0, 2, 0), 02);
-	//voxels->density->setCurrentValue(Vector3(0, 3, 0), 03);
-	//voxels->density->setCurrentValue(Vector3(0, 4, 0), 04);
-
-	//voxels->density->setCurrentValue(Vector3(1, 0, 0), 10);
-	//voxels->density->setCurrentValue(Vector3(1, 1, 0), 11);
-	//voxels->density->setCurrentValue(Vector3(1, 2, 0), 12);
-	//voxels->density->setCurrentValue(Vector3(1, 3, 0), 13);
-	//voxels->density->setCurrentValue(Vector3(1, 4, 0), 14);
-
-	//voxels->density->setCurrentValue(Vector3(2, 0, 0), 20);
-	//voxels->density->setCurrentValue(Vector3(2, 1, 0), 21);
-	//voxels->density->setCurrentValue(Vector3(2, 2, 0), 22);
-	//voxels->density->setCurrentValue(Vector3(2, 3, 0), 23);
-	//voxels->density->setCurrentValue(Vector3(2, 4, 0), 24);
-
-	//voxels->density->setCurrentValue(Vector3(3, 0, 0), 30);
-	//voxels->density->setCurrentValue(Vector3(3, 1, 0), 31);
-	//voxels->density->setCurrentValue(Vector3(3, 2, 0), 32);
-	//voxels->density->setCurrentValue(Vector3(3, 3, 0), 33);
-	//voxels->density->setCurrentValue(Vector3(3, 4, 0), 34);
-
-	//voxels->density->setCurrentValue(Vector3(4, 0, 0), 40);
-	//voxels->density->setCurrentValue(Vector3(4, 1, 0), 41);
-	//voxels->density->setCurrentValue(Vector3(4, 2, 0), 42);
-	//voxels->density->setCurrentValue(Vector3(4, 3, 0), 43);
-	//voxels->density->setCurrentValue(Vector3(4, 4, 0), 44);
-
-	// Debug Velo values
-	//voxels->velocityX->setCurrentValue(Vector3(0, 1, 0), 01);
-	//voxels->velocityX->setCurrentValue(Vector3(0, 2, 0), 02);
-	//voxels->velocityX->setCurrentValue(Vector3(0, 3, 0), 03);
-	//voxels->velocityX->setCurrentValue(Vector3(0, 4, 0), 04);
-
-	//voxels->velocityX->setCurrentValue(Vector3(1, 0, 0), 10);
-	//voxels->velocityX->setCurrentValue(Vector3(1, 1, 0), 11);
-	//voxels->velocityX->setCurrentValue(Vector3(1, 2, 0), 12);
-	//voxels->velocityX->setCurrentValue(Vector3(1, 3, 0), 13);
-	//voxels->velocityX->setCurrentValue(Vector3(1, 4, 0), 14);
-
-	//voxels->velocityX->setCurrentValue(Vector3(2, 0, 0), 20);
-	//voxels->velocityX->setCurrentValue(Vector3(2, 1, 0), 21);
-	//voxels->velocityX->setCurrentValue(Vector3(2, 2, 0), 22);
-	//voxels->velocityX->setCurrentValue(Vector3(2, 3, 0), 23);
-	//voxels->velocityX->setCurrentValue(Vector3(2, 4, 0), 24);
-
-	//voxels->velocityX->setCurrentValue(Vector3(3, 0, 0), 30);
-	//voxels->velocityX->setCurrentValue(Vector3(3, 1, 0), 31);
-	//voxels->velocityX->setCurrentValue(Vector3(3, 2, 0), 32);
-	//voxels->velocityX->setCurrentValue(Vector3(3, 3, 0), 33);
-	//voxels->velocityX->setCurrentValue(Vector3(3, 4, 0), 34);
-
-	//voxels->velocityX->setCurrentValue(Vector3(4, 0, 0), 40);
-	//voxels->velocityX->setCurrentValue(Vector3(4, 1, 0), 41);
-	//voxels->velocityX->setCurrentValue(Vector3(4, 2, 0), 42);
-	//voxels->velocityX->setCurrentValue(Vector3(4, 3, 0), 43);
-	//voxels->velocityX->setCurrentValue(Vector3(4, 4, 0), 44);
-
-
-	//voxels->velocityY->setCurrentValue(Vector3(0, 1, 0), 01);
-	//voxels->velocityY->setCurrentValue(Vector3(0, 2, 0), 02);
-	//voxels->velocityY->setCurrentValue(Vector3(0, 3, 0), 03);
-	//voxels->velocityY->setCurrentValue(Vector3(0, 4, 0), 04);
-
-	//voxels->velocityY->setCurrentValue(Vector3(1, 0, 0), 10);
-	//voxels->velocityY->setCurrentValue(Vector3(1, 1, 0), 11);
-	//voxels->velocityY->setCurrentValue(Vector3(1, 2, 0), 12);
-	//voxels->velocityY->setCurrentValue(Vector3(1, 3, 0), 13);
-	//voxels->velocityY->setCurrentValue(Vector3(1, 4, 0), 14);
-
-	//voxels->velocityY->setCurrentValue(Vector3(2, 0, 0), 20);
-	//voxels->velocityY->setCurrentValue(Vector3(2, 1, 0), 21);
-	//voxels->velocityY->setCurrentValue(Vector3(2, 2, 0), 22);
-	//voxels->velocityY->setCurrentValue(Vector3(2, 3, 0), 23);
-	//voxels->velocityY->setCurrentValue(Vector3(2, 4, 0), 24);
-
-	//voxels->velocityY->setCurrentValue(Vector3(3, 0, 0), 30);
-	//voxels->velocityY->setCurrentValue(Vector3(3, 1, 0), 31);
-	//voxels->velocityY->setCurrentValue(Vector3(3, 2, 0), 32);
-	//voxels->velocityY->setCurrentValue(Vector3(3, 3, 0), 33);
-	//voxels->velocityY->setCurrentValue(Vector3(3, 4, 0), 34);
-
-	//voxels->velocityY->setCurrentValue(Vector3(4, 0, 0), 40);
-	//voxels->velocityY->setCurrentValue(Vector3(4, 1, 0), 41);
-	//voxels->velocityY->setCurrentValue(Vector3(4, 2, 0), 42);
-	//voxels->velocityY->setCurrentValue(Vector3(4, 3, 0), 43);
-	//voxels->velocityY->setCurrentValue(Vector3(4, 4, 0), 44);
-
 	//printGrid();
+
+	frame++;
 }
 
 void CFDGrid::Render()
@@ -255,4 +153,98 @@ void CFD::CFDGrid::velocityStep(float deltaTime)
 	vel_step(N, voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(),
 				voxels->velocityX->getPreviousArray(), voxels->velocityY->getPreviousArray(), 
 				viscocity, deltaTime);
+}
+
+void CFD::CFDGrid::setDebugVelocityValues()
+{
+	voxels->velocityX->setCurrentValue(Vector3(0, 1, 0), 01);
+	voxels->velocityX->setCurrentValue(Vector3(0, 2, 0), 02);
+	voxels->velocityX->setCurrentValue(Vector3(0, 3, 0), 03);
+	voxels->velocityX->setCurrentValue(Vector3(0, 4, 0), 04);
+
+	voxels->velocityX->setCurrentValue(Vector3(1, 0, 0), 10);
+	voxels->velocityX->setCurrentValue(Vector3(1, 1, 0), 11);
+	voxels->velocityX->setCurrentValue(Vector3(1, 2, 0), 12);
+	voxels->velocityX->setCurrentValue(Vector3(1, 3, 0), 13);
+	voxels->velocityX->setCurrentValue(Vector3(1, 4, 0), 14);
+
+	voxels->velocityX->setCurrentValue(Vector3(2, 0, 0), 20);
+	voxels->velocityX->setCurrentValue(Vector3(2, 1, 0), 21);
+	voxels->velocityX->setCurrentValue(Vector3(2, 2, 0), 22);
+	voxels->velocityX->setCurrentValue(Vector3(2, 3, 0), 23);
+	voxels->velocityX->setCurrentValue(Vector3(2, 4, 0), 24);
+
+	voxels->velocityX->setCurrentValue(Vector3(3, 0, 0), 30);
+	voxels->velocityX->setCurrentValue(Vector3(3, 1, 0), 31);
+	voxels->velocityX->setCurrentValue(Vector3(3, 2, 0), 32);
+	voxels->velocityX->setCurrentValue(Vector3(3, 3, 0), 33);
+	voxels->velocityX->setCurrentValue(Vector3(3, 4, 0), 34);
+
+	voxels->velocityX->setCurrentValue(Vector3(4, 0, 0), 40);
+	voxels->velocityX->setCurrentValue(Vector3(4, 1, 0), 41);
+	voxels->velocityX->setCurrentValue(Vector3(4, 2, 0), 42);
+	voxels->velocityX->setCurrentValue(Vector3(4, 3, 0), 43);
+	voxels->velocityX->setCurrentValue(Vector3(4, 4, 0), 44);
+
+
+	voxels->velocityY->setCurrentValue(Vector3(0, 1, 0), 01);
+	voxels->velocityY->setCurrentValue(Vector3(0, 2, 0), 02);
+	voxels->velocityY->setCurrentValue(Vector3(0, 3, 0), 03);
+	voxels->velocityY->setCurrentValue(Vector3(0, 4, 0), 04);
+
+	voxels->velocityY->setCurrentValue(Vector3(1, 0, 0), 10);
+	voxels->velocityY->setCurrentValue(Vector3(1, 1, 0), 11);
+	voxels->velocityY->setCurrentValue(Vector3(1, 2, 0), 12);
+	voxels->velocityY->setCurrentValue(Vector3(1, 3, 0), 13);
+	voxels->velocityY->setCurrentValue(Vector3(1, 4, 0), 14);
+
+	voxels->velocityY->setCurrentValue(Vector3(2, 0, 0), 20);
+	voxels->velocityY->setCurrentValue(Vector3(2, 1, 0), 21);
+	voxels->velocityY->setCurrentValue(Vector3(2, 2, 0), 22);
+	voxels->velocityY->setCurrentValue(Vector3(2, 3, 0), 23);
+	voxels->velocityY->setCurrentValue(Vector3(2, 4, 0), 24);
+
+	voxels->velocityY->setCurrentValue(Vector3(3, 0, 0), 30);
+	voxels->velocityY->setCurrentValue(Vector3(3, 1, 0), 31);
+	voxels->velocityY->setCurrentValue(Vector3(3, 2, 0), 32);
+	voxels->velocityY->setCurrentValue(Vector3(3, 3, 0), 33);
+	voxels->velocityY->setCurrentValue(Vector3(3, 4, 0), 34);
+
+	voxels->velocityY->setCurrentValue(Vector3(4, 0, 0), 40);
+	voxels->velocityY->setCurrentValue(Vector3(4, 1, 0), 41);
+	voxels->velocityY->setCurrentValue(Vector3(4, 2, 0), 42);
+	voxels->velocityY->setCurrentValue(Vector3(4, 3, 0), 43);
+	voxels->velocityY->setCurrentValue(Vector3(4, 4, 0), 44);
+}
+
+void CFD::CFDGrid::setDebugDensityValues()
+{
+	voxels->density->setCurrentValue(Vector3(0, 1, 0), 01);
+	voxels->density->setCurrentValue(Vector3(0, 2, 0), 02);
+	voxels->density->setCurrentValue(Vector3(0, 3, 0), 03);
+	voxels->density->setCurrentValue(Vector3(0, 4, 0), 04);
+
+	voxels->density->setCurrentValue(Vector3(1, 0, 0), 10);
+	voxels->density->setCurrentValue(Vector3(1, 1, 0), 11);
+	voxels->density->setCurrentValue(Vector3(1, 2, 0), 12);
+	voxels->density->setCurrentValue(Vector3(1, 3, 0), 13);
+	voxels->density->setCurrentValue(Vector3(1, 4, 0), 14);
+
+	voxels->density->setCurrentValue(Vector3(2, 0, 0), 20);
+	voxels->density->setCurrentValue(Vector3(2, 1, 0), 21);
+	voxels->density->setCurrentValue(Vector3(2, 2, 0), 22);
+	voxels->density->setCurrentValue(Vector3(2, 3, 0), 23);
+	voxels->density->setCurrentValue(Vector3(2, 4, 0), 24);
+
+	voxels->density->setCurrentValue(Vector3(3, 0, 0), 30);
+	voxels->density->setCurrentValue(Vector3(3, 1, 0), 31);
+	voxels->density->setCurrentValue(Vector3(3, 2, 0), 32);
+	voxels->density->setCurrentValue(Vector3(3, 3, 0), 33);
+	voxels->density->setCurrentValue(Vector3(3, 4, 0), 34);
+
+	voxels->density->setCurrentValue(Vector3(4, 0, 0), 40);
+	voxels->density->setCurrentValue(Vector3(4, 1, 0), 41);
+	voxels->density->setCurrentValue(Vector3(4, 2, 0), 42);
+	voxels->density->setCurrentValue(Vector3(4, 3, 0), 43);
+	voxels->density->setCurrentValue(Vector3(4, 4, 0), 44);
 }

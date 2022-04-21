@@ -97,9 +97,9 @@ namespace CFD
 		void printGrid()
 		{
 			// Print
-			for (int y = 0; y < N; ++y)
+			for (int y = 0; y <= N; ++y)
 			{
-				for (int x = 0; x < N; ++x)
+				for (int x = 0; x <= N; ++x)
 				{
 					printf("(%d, %d) [%f] [%f,%f] ", x,y, voxels->density->getCurrentValue(Vector3(x,y,0)), 
 														  voxels->velocityX->getCurrentValue(Vector3(x,y,0)),
@@ -110,9 +110,12 @@ namespace CFD
 			printf("\n");
 		}
 
+		void setDebugVelocityValues();
+		void setDebugDensityValues();
+
 		int N;
 		const int viscocity = 0.0f;
-		const int diffusionRate = 1.0f;
+		const int diffusionRate = 0.0f;
 
 		CFDData* voxels = nullptr;
 
