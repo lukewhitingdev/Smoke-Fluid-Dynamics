@@ -82,11 +82,13 @@ void CFDGrid::Update(float deltaTime)
 {
 	if(simulating)
 	{
-		//printf("Frame %d \n", frame);
+		printf("Frame %d \n", frame);
 
 		resetValuesForCurrentFrame();
 
 		updateForces();
+
+		addRandomVelocity();
 
 		velocityStep(0.1f);
 		densityStep(0.1f);
@@ -172,18 +174,33 @@ void CFD::CFDGrid::resetValuesForCurrentFrame()
 	}
 }
 
+void CFD::CFDGrid::addRandomVelocity()
+{
+	int randomX = Math::random(0, getGridWidth());
+	int randomY = Math::random(0, getGridHeight());
+
+	int randomValX = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
+	int randomValY = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
+	int randomValZ = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
+
+	addVelocity(Vector3(randomX, randomY, 0), Vector3(randomValX, randomValY, randomValZ));
+}
+
 void CFD::CFDGrid::updateForces()
 {
 	for(const auto& dens : queuedDensities)
 	{
-		voxels->density->setPreviousValue(dens.pos, voxels->density->getPreviousValue(dens.pos) + dens.value);
+		voxels->density->setCurrentValue(dens.pos, voxels->density->getPreviousValue(dens.pos) + dens.value);
 	}
 
 	for (const auto& velo : queuedVelocities)
 	{
-		voxels->velocityX->setPreviousValue(velo.pos, voxels->velocityX->getPreviousValue(velo.pos) + velo.value.x);
-		voxels->velocityY->setPreviousValue(velo.pos, voxels->velocityY->getPreviousValue(velo.pos) + velo.value.y);
+		voxels->velocityX->setCurrentValue(velo.pos, voxels->velocityX->getPreviousValue(velo.pos) + velo.value.x);
+		voxels->velocityY->setCurrentValue(velo.pos, voxels->velocityY->getPreviousValue(velo.pos) + velo.value.y);
 	}
+
+	//queuedDensities.clear();
+	//queuedVelocities.clear();
 }
 
 void CFD::CFDGrid::densityStep(float deltaTime)

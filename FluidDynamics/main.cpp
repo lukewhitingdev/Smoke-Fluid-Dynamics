@@ -268,6 +268,7 @@ void RenderUI()
     static int domainSize;
     static float diffusionRate;
     static float viscocityRate;
+    static int veloMinMax;
 
     ImGui::Begin("Domain Controls");
     ImGui::InputInt("Size", &domainSize);
@@ -277,6 +278,9 @@ void RenderUI()
 
     ImGui::SliderFloat("Viscocity Rate", &viscocityRate, 0, 10);
     cfd->setViscocity(viscocityRate);
+
+    ImGui::SliderInt("Random Velocity MinMax", &veloMinMax, 0, 10);
+    cfd->setRandomVelocityMinMax(veloMinMax);
 
     ImGui::Separator();
 
@@ -366,13 +370,6 @@ void Update()
     float t = TimeUtility::getDeltaTime(); // capped at 60 fps
     if (t == 0.0f)
         return;
-
-    float yeet = sin(i);
-
-    yeet = 10.0f;
-
-    //cfd->addDensity(Vector3(1, 2, 1), 10.0f);
-    //cfd->addVelocity(Vector3(1, 2, 0), Vector3(yeet, 0.0f, 0.0f));
 
     for (int i = 0; i < gameObjects.size(); i++)
     {

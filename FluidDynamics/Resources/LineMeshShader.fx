@@ -65,12 +65,20 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     
+    
     float mag = sqrt(pow(yeet2.x, 2) + pow(yeet2.y, 2) + pow(yeet2.z, 2));
     
-    mag *= 255;
-            
-    return float4(yeet, 0, 0, 255);
+    if(mag < 0)
+        mag = 0;
     
-
-
+    mag *= 255;
+    
+    float normD = (yeet - 0) / (1 - 0);
+    
+    float normV = (mag - 0) / (1 - 0);
+    
+    
+    //yeet = saturate(yeet);
+            
+    return float4(0, 0, 0, normD);
 }

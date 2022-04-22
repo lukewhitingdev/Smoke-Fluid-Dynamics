@@ -107,8 +107,11 @@ namespace CFD
 		int getGridSize() { return N * N; }
 		int getGridWidth() { return N; }
 		int getGridHeight() { return N; }
+		bool getSimulating() { return simulating; }
+
 		void setDiffusionRate(float val) { diffusionRate = val; }
 		void setViscocity(float val) { viscocity = val; }
+		void setRandomVelocityMinMax(int val) { randomVelocityMinMax = val; };
 
 		CFDVoxel getVoxel(const Vector3& pos);
 
@@ -116,6 +119,8 @@ namespace CFD
 		
 		// Simulation Steps.
 		void resetValuesForCurrentFrame();
+
+		void addRandomVelocity();
 
 		void updateForces();
 
@@ -147,6 +152,7 @@ namespace CFD
 		int N;
 		int viscocity = 0.0f;
 		int diffusionRate = 0.0f;
+		int randomVelocityMinMax = 0.0f;
 
 		CFDData* voxels = nullptr;
 		std::vector<QueueItem<float>> queuedDensities;
