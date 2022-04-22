@@ -2,7 +2,7 @@
 #include "Utility/Shader/ShaderUtility.h"
 #include <Core/Entities/GameObject.h>
 
-LineMesh::LineMesh()
+LineMesh::LineMesh() : depth(), gridBuffer(), height(), selectedMesh(), width()
 {
 	direct3D = D3D::getInstance();
 	this->setType(ComponentTypes::LineMesh);
@@ -192,7 +192,7 @@ void LineMesh::createInstancedGrid(int w, int h, int d)
 		{
 			for (int z = 0; z < depth; z++)
 			{
-				instanceData[width * height * z + height * y + x].gridPos = DirectX::XMFLOAT3(x,y,z);
+				instanceData[width * height * z + height * y + x].gridPos = DirectX::XMFLOAT3(float(x),float(y),float(z));
 			}
 		}
 	}
@@ -241,7 +241,7 @@ void LineMesh::Update(float deltaTime)
 	direct3D->immediateContext->UpdateSubresource(constantBuffer, 0, nullptr, &cb, 0, 0);
 
 	GridBuffer gb;
-	DirectX::XMFLOAT3 dim(width, height, depth);
+	DirectX::XMFLOAT3 dim = DirectX::XMFLOAT3(float(width), float(height), float(depth));
 	gb.gridDimensions = DirectX::XMLoadFloat3(&dim);
 	gb.selectedGridItem = DirectX::XMLoadFloat3(&selectedMesh);
 

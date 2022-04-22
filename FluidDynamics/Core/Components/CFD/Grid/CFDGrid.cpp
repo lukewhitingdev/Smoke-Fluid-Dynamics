@@ -4,7 +4,7 @@
 #include <fstream>
 using namespace CFD;
 
-CFDGrid::CFDGrid()
+CFDGrid::CFDGrid() : N(0)
 {
 }
 
@@ -80,6 +80,8 @@ void CFDGrid::Start()
 static int frame;
 void CFDGrid::Update(float deltaTime)
 {
+	UNREFERENCED_PARAMETER(deltaTime);
+
 	if(simulating)
 	{
 		printf("Frame %d \n", frame);
@@ -122,7 +124,6 @@ void CFDGrid::Render()
 			}
 		}
 
-
 		direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, 1);
 
 		// Seems to be issue with alignment or offset when setting the resource.
@@ -153,7 +154,7 @@ CFDVoxel CFD::CFDGrid::getVoxel(const Vector3& pos)
 		vox.density = voxels->density->getCurrentValue(pos);
 		vox.velocity = Vector3(voxels->velocityX->getCurrentValue(pos),
 			voxels->velocityY->getCurrentValue(pos),
-			0);
+			0.0f);
 	}
 	return vox;
 }
@@ -198,9 +199,6 @@ void CFD::CFDGrid::updateForces()
 		voxels->velocityX->setCurrentValue(velo.pos, voxels->velocityX->getPreviousValue(velo.pos) + velo.value.x);
 		voxels->velocityY->setCurrentValue(velo.pos, voxels->velocityY->getPreviousValue(velo.pos) + velo.value.y);
 	}
-
-	//queuedDensities.clear();
-	//queuedVelocities.clear();
 }
 
 void CFD::CFDGrid::densityStep(float deltaTime)

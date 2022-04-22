@@ -265,18 +265,18 @@ void RenderUI()
 
     ImGui::End();
 
-    static int domainSize;
-    static float diffusionRate;
-    static float viscocityRate;
+    static int domainSize = cfd->getGridSize();
+    static float diffusionRate = cfd->getDiffusionRate();
+    static float viscocityRate = cfd->getViscocity();
     static int veloMinMax;
 
     ImGui::Begin("Domain Controls");
     ImGui::InputInt("Size", &domainSize);
 
-    ImGui::SliderFloat("Diffusion Rate", &diffusionRate, 0, 10);
+    ImGui::SliderFloat("Diffusion Rate", &diffusionRate, 0, 1);
     cfd->setDiffusionRate(diffusionRate);
 
-    ImGui::SliderFloat("Viscocity Rate", &viscocityRate, 0, 10);
+    ImGui::SliderFloat("Viscocity Rate", &viscocityRate, 0, 1);
     cfd->setViscocity(viscocityRate);
 
     ImGui::SliderInt("Random Velocity MinMax", &veloMinMax, 0, 10);
@@ -364,7 +364,6 @@ void setupLightForRender()
 }
 
 MatrixBuffer cb;
-float i = 0;
 void Update()
 {
     float t = TimeUtility::getDeltaTime(); // capped at 60 fps
@@ -376,8 +375,6 @@ void Update()
         // Update the cube transform, material etc. 
         gameObjects[i]->update(t);
     }
-
-    i += t;
 }
 
 //--------------------------------------------------------------------------------------

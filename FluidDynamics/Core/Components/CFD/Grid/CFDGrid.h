@@ -40,7 +40,7 @@ namespace CFD
 
 		int getIndex(const Vector3& voxelPos) {
 			//return (N * N * voxelPos.z + N * voxelPos.y + voxelPos.x); // 3D.
-			return ((voxelPos.x)+ (N + 2) * (voxelPos.y)); // 2D.
+			return int((voxelPos.x)+ (N + 2) * (voxelPos.y)); // 2D.
 		};
 
 		int N;
@@ -96,6 +96,9 @@ namespace CFD
 			voxels = new CFDData(N);
 			densityTextureData = new float[N*N];
 			velocityTextureData = new Vector4[N * N];
+
+			queuedDensities.clear();
+			queuedVelocities.clear();
 		};
 
 		void Update(float deltaTime);
@@ -110,7 +113,11 @@ namespace CFD
 		bool getSimulating() { return simulating; }
 
 		void setDiffusionRate(float val) { diffusionRate = val; }
+		float getDiffusionRate() { return diffusionRate; }
+
 		void setViscocity(float val) { viscocity = val; }
+		float getViscocity() { return viscocity; }
+
 		void setRandomVelocityMinMax(int val) { randomVelocityMinMax = val; };
 
 		CFDVoxel getVoxel(const Vector3& pos);
@@ -150,9 +157,9 @@ namespace CFD
 		bool simulating = false;
 
 		int N;
-		int viscocity = 0.0f;
-		int diffusionRate = 0.0f;
-		int randomVelocityMinMax = 0.0f;
+		float viscocity = 0.0f;
+		float diffusionRate = 0.5f;
+		int randomVelocityMinMax = 0;
 
 		CFDData* voxels = nullptr;
 		std::vector<QueueItem<float>> queuedDensities;
