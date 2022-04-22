@@ -77,6 +77,11 @@ public:
 		return std::max<int>(min, std::min<int>(val, max));
 	}
 
+	static Vector3 clamp(const Vector3& vec, const float compMin, const float compMax)
+	{
+		return Vector3(clamp(vec.x, compMin, compMax), clamp(vec.y, compMin, compMax), clamp(vec.z, compMin, compMax));
+	}
+
 	static int random(int min,int max)
 	{
 		return min + (rand() % static_cast<int>(max - min + 1));

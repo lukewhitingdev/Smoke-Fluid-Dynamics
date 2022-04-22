@@ -1,10 +1,11 @@
 #include "CFDGrid.h"
-#include <Dependencies\Physics\solver.c>
 #include <iostream>
 #include <fstream>
+#include <Dependencies\Physics\solver.c>
+
 using namespace CFD;
 
-CFDGrid::CFDGrid() : N(0)
+CFDGrid::CFDGrid() : N(0), totalN(0)
 {
 }
 
@@ -203,9 +204,16 @@ void CFD::CFDGrid::updateForces()
 
 void CFD::CFDGrid::densityStep(float deltaTime)
 {
-	dens_step(N, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), 
-				 voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(),
-				 diffusionRate, deltaTime);
+	updateFromPreviousFrame<float>(voxels->density, deltaTime);
+
+	voxels->density->pushCurrentDataIntoPreviousArray();
+
+	//diffuse(N, 0, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), diffusionRate, deltaTime);
+	updateDiffusion(voxels->density, 0, deltaTime);
+
+	voxels->density->pushCurrentDataIntoPreviousArray();
+
+	advect(N, 0, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(), deltaTime);
 }
 
 void CFD::CFDGrid::velocityStep(float deltaTime)
@@ -214,6 +222,7 @@ void CFD::CFDGrid::velocityStep(float deltaTime)
 				voxels->velocityX->getPreviousArray(), voxels->velocityY->getPreviousArray(), 
 				viscocity, deltaTime);
 }
+
 
 void CFD::CFDGrid::setDebugVelocityValues()
 {
