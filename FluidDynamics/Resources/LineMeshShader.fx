@@ -48,10 +48,17 @@ PS_INPUT VSMain(VS_INPUT input)
     return output;
 }
 
+bool compareFloat(float a, float b, float accuracy)
+{
+    return abs(a - b) < accuracy;
+}
+
 float4 PSMain(PS_INPUT input) : SV_TARGET
 {   
     float3 xyz = float3(0, 0, 0);
-    if (selectedItem.x == input.gridPos.x && selectedItem.y == input.gridPos.y)
+    if (compareFloat(selectedItem.x, input.gridPos.x, 0.001) 
+        && compareFloat(selectedItem.y, input.gridPos.y, 0.001)
+        && compareFloat(selectedItem.z, input.gridPos.z, 0.001))
     {
         return float4(255, 255, 0, 255);
     }

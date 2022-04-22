@@ -215,13 +215,16 @@ void RenderUI()
     // Draw Stuff.
     static int selectedPosX;
     static int selectedPosY;
+    static int selectedPosZ;
     static bool editingVoxel;
 
     ImGui::Begin("Voxel Controls");
     ImGui::SliderInt("Select Voxel X", &selectedPosX, 0, cfd->getGridWidth());
     ImGui::SliderInt("Select Voxel Y", &selectedPosY, 0, cfd->getGridHeight());
+    ImGui::SliderInt("Select Voxel Z", &selectedPosZ, 0, cfd->getGridHeight());
 
-    CFD::CFDVoxel vox = cfd->getVoxel(Vector3(selectedPosX, selectedPosY, 0));
+    CFD::CFDVoxel vox = cfd->getVoxel(Vector3(selectedPosX, selectedPosY, selectedPosZ));
+    gridComponent->setSelectedGridItem(Vector3(selectedPosX, selectedPosY, selectedPosZ));
 
     if (editingVoxel == false)
     {
@@ -261,7 +264,6 @@ void RenderUI()
     }
 
 
-    gridComponent->setSelectedGridItem(Vector3(selectedPosX, selectedPosY, 0));
 
     ImGui::End();
 
@@ -286,7 +288,7 @@ void RenderUI()
 
     if (ImGui::Button("Save"))
     {
-        gridComponent->GenerateGrid(domainSize, domainSize, 1);
+        gridComponent->GenerateGrid(domainSize, domainSize, domainSize);
 
         cfd->setGrid(domainSize);
         cfd->Start();
