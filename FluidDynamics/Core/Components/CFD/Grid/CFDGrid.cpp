@@ -90,9 +90,9 @@ void CFDGrid::Update(float deltaTime)
 
 		resetValuesForCurrentFrame();
 
-		//updateForces();
+		updateForces();
 
-		//addRandomVelocity();
+		addRandomVelocity();
 
 		//velocityStep(0.1f);
 		densityStep(0.1f);

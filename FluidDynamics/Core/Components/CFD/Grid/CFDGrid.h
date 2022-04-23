@@ -151,9 +151,9 @@ namespace CFD
 	private:
 
 		int getIndex(const Vector3& voxelPos) {
-			//int index = int((voxelPos.x) + (N + 2) * (voxelPos.y)); // 2D.
-			int index = (N * N * voxelPos.z + N * voxelPos.y + voxelPos.x);// 3D.
-			if (index > arraySize)
+			int index = int((voxelPos.x) + (N + 2) * (voxelPos.y)); // 2D.
+			//int index = (N * N * voxelPos.z + N * voxelPos.y + voxelPos.x);// 3D.
+			if (index > arraySize || index < 0)
 				return -1;
 
 			return  index;
@@ -268,31 +268,36 @@ namespace CFD
 		template<typename T>
 		void updateDiffusion(VoxelData<T>* data, float boundary, float deltaTime) 
 		{
-			float a = deltaTime * diffusionRate * N * N * N;
-			float c = 1 + 6 * a;
-			
-			int i, j, k;
-			
-			for (k = 0; k < 20; k++) {
-			
-				for(int x = 0; x < N; ++x)
+			float k = deltaTime * diffusionRate * N*N;
+			float c = 1 + 4 * a;
+		
+			for (int i = 0; i < 20; i++) 
+			{
+				for(int x = 1; x <= N; x++)
 				{
-					for (int y = 0; y < N; ++y)
+					for (int y = 1; y <= N; y++)
 					{
-						for (int z = 0; z < N; ++z)
-						{
-							float totalSurroundingValues = data->getCurrentValue(Vector3(x + 1, y, z)) + data->getCurrentValue(Vector3(x - 1, y, z))
-														 + data->getCurrentValue(Vector3(x, y + 1, z)) + data->getCurrentValue(Vector3(x, y - 1, z))
-														 + data->getCurrentValue(Vector3(x, y, z + 1)) + data->getCurrentValue(Vector3(x, y, z - 1));
-							
-							float value = (data->getPreviousValue(Vector3(x, y, z)) + a * (totalSurroundingValues)) / c;
+						float totalSurroundingValues = data->getCurrentValue(Vector3(x - 1, y, 0)) +  data->getCurrentValue(Vector3(x + 1, y, 0))
+													 + data->getCurrentValue(Vector3(x, y - 1, 0)) + data->getCurrentValue(Vector3(x, y + 1, 0))
+													 + 0; // z.
 
-							data->setCurrentValue(Vector3(x, y, z), value);
-						}
+						float x0, x1, y0, y1;
+						
+						x0 = data->getCurrentValue(Vector3(x - 1, y, 0));
+						x1 = data->getCurrentValue(Vector3(x + 1, y, 0));
+
+						y0 = data->getCurrentValue(Vector3(x, y - 1, 0));
+						y1 = data->getCurrentValue(Vector3(x, y + 1, 0));
+
+						float prev = data->getPreviousValue(Vector3(x, y, 0));
+
+						float value = (prev + k*(x0 + x1 + y0 + y1)) / c;
+
+						data->setCurrentValue(Vector3(x, y, 0), value);
 					}
 				}
+				set_bnd(N, boundary, data->getCurrentArray());
 			}
-			set_bnd(N, boundary, data->getCurrentArray());
 		};
 
 		/*

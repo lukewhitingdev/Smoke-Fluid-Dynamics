@@ -163,11 +163,11 @@ HRESULT		InitWorld(int width, int height)
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(0, 0, 0));
     //gameObjects[0]->setPosition(DirectX::XMFLOAT3(-5, 0, 0));
 
-    FILE* fpstdout = stdout;
+    //FILE* fpstdout = stdout;
 
-    AllocConsole();
-    freopen_s(&fpstdout, "CONOUT$", "w", stdout);
-    printf("Debugging Window:\n");
+    //AllocConsole();
+    //freopen_s(&fpstdout, "CONOUT$", "w", stdout);
+    //printf("Debugging Window:\n");
 
     camera = new GameObject("Camera");
     camera->setRenderable(false);
