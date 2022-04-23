@@ -214,17 +214,14 @@ void CFD::CFDGrid::densityStep(float deltaTime)
 {
 	updateFromPreviousFrame<float>(voxels->density, deltaTime);
 
-	voxels->density->pushCurrentDataIntoPreviousArray();
+	voxels->density->swapCurrAndPrevArrays();
 
-	//diffuse(N, 0, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), diffusionRate, deltaTime);
 	updateDiffusion(voxels->density, 0, deltaTime);
-	
-	// TODO: DIFFUSION SEEMS BROKEN :(
 
-	//voxels->density->pushCurrentDataIntoPreviousArray();
+	voxels->density->swapCurrAndPrevArrays();
 
 	//advect(N, 0, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(), deltaTime);
-	///updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
+	//updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
 }
 
 void CFD::CFDGrid::velocityStep(float deltaTime)

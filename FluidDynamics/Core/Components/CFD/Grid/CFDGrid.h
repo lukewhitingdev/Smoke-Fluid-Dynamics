@@ -146,13 +146,18 @@ namespace CFD
 		T* getCurrentArray() { return curr; }
 		T* getPreviousArray() { return prev; }
 
-		void pushCurrentDataIntoPreviousArray() { memcpy_s(prev, sizeof(T) * arraySize, curr, sizeof(T) * arraySize); };
+		void swapCurrAndPrevArrays() 
+		{
+			float* tmp = prev;
+			prev = curr;
+			curr = tmp;
+		};
 		
 	private:
 
 		int getIndex(const Vector3& voxelPos) {
-			int index = int((voxelPos.x) + (N + 2) * (voxelPos.y)); // 2D.
-			//int index = (N * N * voxelPos.z + N * voxelPos.y + voxelPos.x);// 3D.
+			//int index = int((voxelPos.x) + (N + 2) * (voxelPos.y)); // 2D.
+			int index = N * N * voxelPos.z + voxelPos.y * N + voxelPos.x;
 			if (index > arraySize || index < 0)
 				return -1;
 
@@ -268,131 +273,93 @@ namespace CFD
 		template<typename T>
 		void updateDiffusion(VoxelData<T>* data, float boundary, float deltaTime) 
 		{
-			float k = deltaTime * diffusionRate * N*N;
-			float c = 1 + 4 * a;
+			float k = deltaTime * diffusionRate * N*N*N;
+			float c = 1 + 6 * k;
 		
 			for (int i = 0; i < 20; i++) 
 			{
-				for(int x = 1; x <= N; x++)
+				for(int x = 0; x < N; x++)
 				{
-					for (int y = 1; y <= N; y++)
+					for (int y = 0; y < N; y++)
 					{
-						float totalSurroundingValues = data->getCurrentValue(Vector3(x - 1, y, 0)) +  data->getCurrentValue(Vector3(x + 1, y, 0))
-													 + data->getCurrentValue(Vector3(x, y - 1, 0)) + data->getCurrentValue(Vector3(x, y + 1, 0))
-													 + 0; // z.
+						for(int z = 0; z < N; z++)
+						{
+							float totalSurroundingValues = data->getCurrentValue(Vector3(x - 1, y, z)) + data->getCurrentValue(Vector3(x + 1, y, z))
+								+ data->getCurrentValue(Vector3(x, y - 1, z)) + data->getCurrentValue(Vector3(x, y + 1, z))
+								+ data->getCurrentValue(Vector3(x, y, z - 1)) + data->getCurrentValue(Vector3(x, y, z + 1)); // z.
 
-						float x0, x1, y0, y1;
-						
-						x0 = data->getCurrentValue(Vector3(x - 1, y, 0));
-						x1 = data->getCurrentValue(Vector3(x + 1, y, 0));
+							float x0, x1, y0, y1, z0, z1;
 
-						y0 = data->getCurrentValue(Vector3(x, y - 1, 0));
-						y1 = data->getCurrentValue(Vector3(x, y + 1, 0));
+							x0 = data->getCurrentValue(Vector3(x - 1, y, z));
+							x1 = data->getCurrentValue(Vector3(x + 1, y, z));
 
-						float prev = data->getPreviousValue(Vector3(x, y, 0));
+							y0 = data->getCurrentValue(Vector3(x, y - 1, z));
+							y1 = data->getCurrentValue(Vector3(x, y + 1, z));
 
-						float value = (prev + k*(x0 + x1 + y0 + y1)) / c;
+							z0 = data->getCurrentValue(Vector3(x, y, z - 1));
+							z1 = data->getCurrentValue(Vector3(x, y, z + 1));
 
-						data->setCurrentValue(Vector3(x, y, 0), value);
+							float prev = data->getPreviousValue(Vector3(x, y, z));
+
+							float value = (prev + k * (x0 + x1 + y0 + y1 + z0 + z1)) / c;
+
+							data->setCurrentValue(Vector3(x, y, z), value);
+						}
 					}
 				}
 				set_bnd(N, boundary, data->getCurrentArray());
 			}
 		};
 
-		/*
-		// TODO: MAKE THIS WORK FOR VELOICTY AND DENSITY. WILL NEED TO SPLIT THE FUNCTIONS HOWEVER BIG SAD :(
-		//void updateVelocityAdvection(VoxelData<float>* data, VoxelData<float>* velocityDataX, VoxelData<float>* velocityDataY, VoxelData<float>* velocityDataZ, float boundary, float deltaTime)
-		//{
-		//	float x0, y0, z0, dt0;
-		//	Vector3 backtracePosition;
-		//	Vector3 absolutePosition;
-
-		//	dt0 = deltaTime * N;
-
-		//	for (int x = 0; x < N; ++x)
-		//	{
-		//		for (int y = 0; y < N; ++y)
-		//		{
-		//			for (int z = 0; z < N; ++z)
-		//			{
-		//				backtracePosition = Vector3(float(x - dt0 * velocityDataX->getCurrentValue(Vector3(x, y, z))),
-		//											float(y - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))),
-		//											float(z - dt0 * velocityDataZ->getCurrentValue(Vector3(x, y, z))));
-
-		//				Math::clamp(backtracePosition, 0.5f, N + 0.5f);
-
-		//				absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
-
-		//				// Get Interpolate Values for each axis
-		//				float interpX = Math::lerp(data->getPreviousValue(absolutePosition).x,
-		//										   data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z)).x,
-		//										   backtracePosition.x);
-
-		//				float interpY = Math::lerp(data->getPreviousValue(absolutePosition).y,
-		//										   data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y + 1, absolutePosition.z)).y,
-		//										   backtracePosition.y);
-
-		//				float interpZ = Math::lerp(data->getPreviousValue(absolutePosition).z,
-		//										   data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z + 1)).z,
-		//										   backtracePosition.z);
-
-		//				Vector3 value = Vector3(interpX, interpY, interpZ);
-
-		//				data->setCurrentValue(Vector3(x, y, z), value);
-		//			}
-		//		}
-		//	}
-		//	set_bnd(N, boundary, data->());
-		//};
-		*/
-
 		void updateDiffusionAdvection(VoxelData<float>* data, VoxelData<float>* velocityDataX, VoxelData<float>* velocityDataY, VoxelData<float>* velocityDataZ, float boundary, float deltaTime)
 		{
-			float x0, y0, z0, dt0;
-			Vector3 backtracePosition;
-			Vector3 absolutePosition;
 
-			dt0 = deltaTime * N * N;
 
-			for (int x = 0; x < N; ++x)
-			{
-				for (int y = 0; y < N; ++y)
-				{
-					for (int z = 0; z < N; ++z)
-					{
-						backtracePosition = Vector3(float(x - dt0 * velocityDataX->getCurrentValue(Vector3(x, y, z))),
-							float(y - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))),
-							float(z - dt0 * velocityDataZ->getCurrentValue(Vector3(x, y, z))));
 
-						Math::clamp(backtracePosition, 0.5f, N + 0.5f);
+			//float x0, y0, z0, dt0;
+			//Vector3 backtracePosition;
+			//Vector3 absolutePosition;
 
-						absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
+			//dt0 = deltaTime * N * N * N;
 
-						// Interpolate between all neighbours
+			//for (int x = 0; x < N; ++x)
+			//{
+			//	for (int y = 0; y < N; ++y)
+			//	{
+			//		for (int z = 0; z < N; ++z)
+			//		{
+			//			backtracePosition = Vector3(float(x - dt0 * velocityDataX->getCurrentValue(Vector3(x, y, z))),
+			//				float(y - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))),
+			//				float(z - dt0 * velocityDataZ->getCurrentValue(Vector3(x, y, z))));
 
-						float a = data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z));	// Left
-						float b = data->getPreviousValue(Vector3(absolutePosition.x - 1, absolutePosition.y, absolutePosition.z)); // Right
+			//			Math::clamp(backtracePosition, 0.5f, N + 0.5f);
 
-						float interpX = Math::lerp(a, b, backtracePosition.x);
+			//			absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
 
-						a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y+1, absolutePosition.z));	// up
-						b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y-1, absolutePosition.z)); // down
+			//			// Interpolate between all neighbours
 
-						float interpY = Math::lerp(a, b, backtracePosition.y);
+			//			float a = data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z));	// Left
+			//			float b = data->getPreviousValue(Vector3(absolutePosition.x - 1, absolutePosition.y, absolutePosition.z)); // Right
 
-						a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z+1));	// forward
-						b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z-1)); // back
+			//			float interpX = Math::lerp(a, b, backtracePosition.x);
 
-						float interpZ = Math::lerp(a, b, backtracePosition.z);
+			//			a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y+1, absolutePosition.z));	// up
+			//			b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y-1, absolutePosition.z)); // down
 
-						float value = (interpX + interpY + interpZ) / 6;
+			//			float interpY = Math::lerp(a, b, backtracePosition.y);
 
-						data->setCurrentValue(Vector3(x, y, z), value);
-					}
-				}
-			}
-			set_bnd(N, boundary, data->getCurrentArray());
+			//			a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z+1));	// forward
+			//			b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z-1)); // back
+
+			//			float interpZ = Math::lerp(a, b, backtracePosition.z);
+
+			//			float value = (interpX + interpY + interpZ);
+
+			//			data->setCurrentValue(Vector3(x, y, z), value);
+			//		}
+			//	}
+			//}
+			//set_bnd(N, boundary, data->getCurrentArray());
 		};
 
 
@@ -403,7 +370,7 @@ namespace CFD
 		{
 			int i;
 
-			for (i = 1; i <= N; i++) {
+			for (i = 0; i < N; i++) {
 				x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
 				x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
 				x[IX(i, 0)] = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];

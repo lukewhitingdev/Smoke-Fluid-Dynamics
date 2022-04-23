@@ -248,7 +248,7 @@ void RenderUI()
         static float editedDens;
 
         ImGui::Text("Edit Voxel Data:");
-        ImGui::SliderFloat("Density", &editedDens, 0, 150);
+        ImGui::SliderFloat("Density", &editedDens, 0, 1000);
         ImGui::SliderFloat3("Velocity", veloEdit, 0, 150);
 
         if(ImGui::Button("Add"))
