@@ -2,6 +2,12 @@
 
 ### Hello! 👋  This is my Final Year Project created at University
 
+# Code
+All CFD code can be found here:
+[Here](https://github.com/lukewhitingdev/Smoke-Fluid-Dynamics/tree/main/FluidDynamics/Core/Components/CFD/Grid) <br>
+All Grid Generation code can be found here:
+[Here](https://github.com/lukewhitingdev/Smoke-Fluid-Dynamics/tree/main/FluidDynamics/Core/Components/Grid)
+
 # Controls
 WSAD - Move Camera Position
 Right-Click-Hold - Move Camera LookAt (Sometimes snaps aplogies)
