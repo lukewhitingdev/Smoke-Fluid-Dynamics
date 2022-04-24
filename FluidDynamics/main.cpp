@@ -288,9 +288,14 @@ void RenderUI()
 
     if (ImGui::Button("Save"))
     {
-        gridComponent->GenerateGrid(domainSize, domainSize, domainSize);
+        int dimensions = 3;
+        if (dimensions == 3)
+            gridComponent->GenerateGrid(domainSize, domainSize, domainSize);
+        else
+            gridComponent->GenerateGrid(domainSize, domainSize, 1);
 
-        cfd->setGrid(domainSize);
+
+        cfd->setGrid(domainSize, dimensions);
         cfd->Start();
     };
 

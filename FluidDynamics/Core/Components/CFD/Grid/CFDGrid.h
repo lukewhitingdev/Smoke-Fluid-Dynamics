@@ -207,7 +207,6 @@ namespace CFD
 		T value;
 	};
 
-
 	class CFDGrid : public Component
 	{
 	public:
@@ -216,9 +215,10 @@ namespace CFD
 
 		void Start();
 
-		void setGrid(const int size) {
+		void setGrid(const int size, const int dim) {
 			N = size;
-			totalN = (N+2) * (N + 2) * (N + 2);
+			dimensions = dim;
+			totalN = pow((N+2), 3);
 			voxels = new CFDData(N, totalN);
 			densityTextureData = new float[totalN];
 			velocityTextureData = new Vector4[totalN];
@@ -233,9 +233,11 @@ namespace CFD
 		void addDensity(const Vector3& pos, const float val);
 		void addVelocity(const Vector3& pos, const Vector3& val);
 
-		int getGridSize() { return N * N; }
+		int getGridSize() { return pow(N, dimensions); }
 		int getGridWidth() { return N; }
 		int getGridHeight() { return N; }
+		int getGridDepth() { return N; }
+
 		bool getSimulating() { return simulating; }
 
 		void setDiffusionRate(float val) { diffusionRate = val; }
@@ -263,7 +265,7 @@ namespace CFD
 		template<typename T>
 		void updateFromPreviousFrame(VoxelData<T>* data, float deltaTime)
 		{
-			int size = (N + 2) * (N + 2) * (N+2);
+			int size = pow(N+2, dimensions);
 			for (int i = 0; i < size; i++)
 			{
 				data->increaseCurrentValue(i, data->getPreviousValue(i) * deltaTime);
@@ -273,8 +275,8 @@ namespace CFD
 		template<typename T>
 		void updateDiffusion(VoxelData<T>* data, float boundary, float deltaTime) 
 		{
-			float k = deltaTime * diffusionRate * N*N*N;
-			float c = 1 + 6 * k;
+			float k = deltaTime * diffusionRate * pow(N, dimensions);
+			float c = (dimensions > 2) ? 1 + 6 * k : 1 + 4 * k;
 		
 			for (int i = 0; i < 20; i++) 
 			{
@@ -284,30 +286,49 @@ namespace CFD
 					{
 						for(int z = 0; z < N; z++)
 						{
-							float totalSurroundingValues = data->getCurrentValue(Vector3(x - 1, y, z)) + data->getCurrentValue(Vector3(x + 1, y, z))
-								+ data->getCurrentValue(Vector3(x, y - 1, z)) + data->getCurrentValue(Vector3(x, y + 1, z))
-								+ data->getCurrentValue(Vector3(x, y, z - 1)) + data->getCurrentValue(Vector3(x, y, z + 1)); // z.
-
+							float totalSurroundingValues;
 							float x0, x1, y0, y1, z0, z1;
+							float prev;
+							float value;
+							if (dimensions > 2)
+							{
+								totalSurroundingValues = data->getCurrentValue(Vector3(x - 1, y, z)) + data->getCurrentValue(Vector3(x + 1, y, z))
+									+ data->getCurrentValue(Vector3(x, y - 1, z)) + data->getCurrentValue(Vector3(x, y + 1, z))
+									+ data->getCurrentValue(Vector3(x, y, z - 1)) + data->getCurrentValue(Vector3(x, y, z + 1)); // z.
 
-							x0 = data->getCurrentValue(Vector3(x - 1, y, z));
-							x1 = data->getCurrentValue(Vector3(x + 1, y, z));
+								x0 = data->getCurrentValue(Vector3(x - 1, y, z));
+								x1 = data->getCurrentValue(Vector3(x + 1, y, z));
 
-							y0 = data->getCurrentValue(Vector3(x, y - 1, z));
-							y1 = data->getCurrentValue(Vector3(x, y + 1, z));
+								y0 = data->getCurrentValue(Vector3(x, y - 1, z));
+								y1 = data->getCurrentValue(Vector3(x, y + 1, z));
 
-							z0 = data->getCurrentValue(Vector3(x, y, z - 1));
-							z1 = data->getCurrentValue(Vector3(x, y, z + 1));
+								z0 = data->getCurrentValue(Vector3(x, y, z - 1));
+								z1 = data->getCurrentValue(Vector3(x, y, z + 1));
 
-							float prev = data->getPreviousValue(Vector3(x, y, z));
+								prev = data->getPreviousValue(Vector3(x, y, z));
 
-							float value = (prev + k * (x0 + x1 + y0 + y1 + z0 + z1)) / c;
+								value = (prev + k * (x0 + x1 + y0 + y1 + z0 + z1)) / c;
+							}
+							else
+							{
+								totalSurroundingValues = data->getCurrentValue(Vector3(x - 1, y, z)) + data->getCurrentValue(Vector3(x + 1, y, z))
+									+ data->getCurrentValue(Vector3(x, y - 1, z)) + data->getCurrentValue(Vector3(x, y + 1, z)); // z.
 
+								x0 = data->getCurrentValue(Vector3(x - 1, y, z));
+								x1 = data->getCurrentValue(Vector3(x + 1, y, z));
+
+								y0 = data->getCurrentValue(Vector3(x, y - 1, z));
+								y1 = data->getCurrentValue(Vector3(x, y + 1, z));
+
+								prev = data->getPreviousValue(Vector3(x, y, z));
+
+								value = (prev + k * (x0 + x1 + y0 + y1)) / c;
+							}
 							data->setCurrentValue(Vector3(x, y, z), value);
 						}
 					}
 				}
-				//set_bnd(N, boundary, data->getCurrentArray());
+				set_bnd(N, boundary, data->getCurrentArray());
 			}
 		};
 
@@ -317,7 +338,7 @@ namespace CFD
 			Vector3 backtracePosition;
 			Vector3 absolutePosition;
 
-			dt0 = deltaTime * N * N * N;
+			dt0 = deltaTime * pow(N, dimensions);
 
 			for (int x = 0; x < N; ++x)
 			{
@@ -356,7 +377,7 @@ namespace CFD
 					}
 				}
 			}
-			//set_bnd(N, boundary, data->getCurrentArray());
+			set_bnd(N, boundary, data->getCurrentArray());
 		};
 
 
@@ -404,6 +425,8 @@ namespace CFD
 
 		int N;
 		int totalN;
+		int dimensions = 0;
+
 		float viscocity = 0.0f;
 		float diffusionRate = 0.5f;
 		int randomVelocityMinMax = 0;

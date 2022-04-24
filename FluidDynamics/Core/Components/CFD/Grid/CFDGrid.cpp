@@ -24,7 +24,7 @@ void CFDGrid::Start()
 	ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE3D_DESC));
 	texDesc.Width = N;
 	texDesc.Height = N;
-	texDesc.Depth = N;
+	texDesc.Depth = (dimensions > 2) ? N : 1;
 	texDesc.MipLevels = 1;
 	texDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -46,7 +46,7 @@ void CFDGrid::Start()
 	ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE3D_DESC));
 	texDesc.Width = N;
 	texDesc.Height = N;
-	texDesc.Depth = N;
+	texDesc.Depth = (dimensions > 2) ? N : 1;
 	texDesc.MipLevels = 1;
 	texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -121,20 +121,21 @@ void CFDGrid::Render()
 				{
 					densityTextureData[index] = voxels->density->getCurrentValue(Vector3(x, y, z));
 
-					float xVelo, yVelo;
+					float xVelo, yVelo, zVelo;
 					xVelo = voxels->velocityX->getCurrentValue(Vector3(x, y, z));
 					yVelo = voxels->velocityY->getCurrentValue(Vector3(x, y, z));
+					zVelo = voxels->velocityZ->getCurrentValue(Vector3(x, y, z));
 
-					velocityTextureData[index] = Vector4(xVelo, yVelo, 0, 0);
+					velocityTextureData[index] = Vector4(xVelo, yVelo, zVelo, 0);
 					index++;
 				}
 			}
 		}
 
-		direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, sizeof(float) * N * N);
+		direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, (dimensions > 2) ? pow(sizeof(float), dimensions) : 0);
 
 		// Seems to be issue with alignment or offset when setting the resource.
-		direct3D->immediateContext->UpdateSubresource(voxelVeloTex, 0, nullptr, velocityTextureData, sizeof(Vector4) * N, sizeof(Vector4) * N * N);
+		direct3D->immediateContext->UpdateSubresource(voxelVeloTex, 0, nullptr, velocityTextureData, sizeof(Vector4) * N, (dimensions > 2) ? pow(sizeof(Vector4), dimensions) : 0);
 
 		direct3D->immediateContext->PSSetSamplers(0, 1, &sampler);
 		direct3D->immediateContext->PSSetShaderResources(0, 1, &voxelDensView);
@@ -222,7 +223,7 @@ void CFD::CFDGrid::densityStep(float deltaTime)
 	voxels->density->swapCurrAndPrevArrays();
 
 	//advect(N, 0, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(), deltaTime);
-	updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
+	//updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
 }
 
 void CFD::CFDGrid::velocityStep(float deltaTime)
