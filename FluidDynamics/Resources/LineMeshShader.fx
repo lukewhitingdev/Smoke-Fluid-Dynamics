@@ -72,7 +72,7 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
     
-    
+  
     float mag = sqrt(pow(yeet2.x, 2) + pow(yeet2.y, 2) + pow(yeet2.z, 2));
     
     if(mag < 0)
@@ -85,6 +85,9 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     float normV = (mag - 0) / (1 - 0);
     
     
+    if (normD <= 0)
+        normD = 0.01;
+
     //yeet = saturate(yeet);
             
     return float4(0, 0, 0, normD);

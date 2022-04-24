@@ -161,7 +161,7 @@ CFDVoxel CFD::CFDGrid::getVoxel(const Vector3& pos)
 		vox.density = voxels->density->getCurrentValue(pos);
 		vox.velocity = Vector3(voxels->velocityX->getCurrentValue(pos),
 			voxels->velocityY->getCurrentValue(pos),
-			0.0f);
+			voxels->velocityZ->getCurrentValue(pos));
 	}
 	return vox;
 }
@@ -187,12 +187,13 @@ void CFD::CFDGrid::addRandomVelocity()
 {
 	int randomX = Math::random(0, getGridWidth());
 	int randomY = Math::random(0, getGridHeight());
+	int randomZ = Math::random(0, getGridHeight());
 
 	int randomValX = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
 	int randomValY = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
 	int randomValZ = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
 
-	addVelocity(Vector3(randomX, randomY, 0), Vector3(randomValX, randomValY, randomValZ));
+	addVelocity(Vector3(randomX, randomY, randomZ), Vector3(randomValX, randomValY, randomValZ));
 }
 
 void CFD::CFDGrid::updateForces()
@@ -221,7 +222,7 @@ void CFD::CFDGrid::densityStep(float deltaTime)
 	voxels->density->swapCurrAndPrevArrays();
 
 	//advect(N, 0, voxels->density->getCurrentArray(), voxels->density->getPreviousArray(), voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(), deltaTime);
-	//updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
+	updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
 }
 
 void CFD::CFDGrid::velocityStep(float deltaTime)

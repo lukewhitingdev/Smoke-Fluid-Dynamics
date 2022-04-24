@@ -385,7 +385,7 @@ void Update()
 void Render()
 {
     // Clear the back buffer
-    direct3D->immediateContext->ClearRenderTargetView( direct3D->renderTargetView, Colors::White );
+    direct3D->immediateContext->ClearRenderTargetView( direct3D->renderTargetView, Colors::Red );
 
     // Clear the depth buffer to 1.0 (max depth)
     direct3D->immediateContext->ClearDepthStencilView(direct3D->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
