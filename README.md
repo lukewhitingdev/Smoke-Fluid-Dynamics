@@ -1,10 +1,11 @@
 # Smoke-Fluid-Dynamics
 
-TODO:
-Make Diffuse and Advection functions take in a specific thing you want to diffuse i.e velocity or density.
-Create Projection Function
-Finish Velocity function by using the above.
+## Hello! This is my Final Year Project created at University
 
-Make overall density step and velocity step to seperate the two steps.
-Create boundary condition which is enforced every frame.
+# Controls
+WSAD - Move Camera Position
+Right-Click-Hold - Move Camera LookAt (Sometimes snaps aplogies)
+
+# Notes
+Currently quite un-optimized and slow so run at your own risk. 2D simulations run fairly well, 3D takes a large performance hit however.
 
