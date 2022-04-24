@@ -66,29 +66,23 @@ float4 PSMain(PS_INPUT input) : SV_TARGET
     input.gridPos.x /= gridDimensions.x;
     input.gridPos.y /= gridDimensions.y;
     
-    float yeet = txDensity.Sample(sam, input.gridPos.xyz);
-    float3 yeet2 = txVelocity.Sample(sam, input.gridPos.xyz).xyz;
-    
-    //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
-    //yeet *= gridDimensions.x * gridDimensions.y * gridDimensions.z;
-    
+    float dens = txDensity.Sample(sam, input.gridPos.xyz);
+    float3 velo = txVelocity.Sample(sam, input.gridPos.xyz).xyz;
   
-    float mag = sqrt(pow(yeet2.x, 2) + pow(yeet2.y, 2) + pow(yeet2.z, 2));
+    float mag = sqrt(pow(velo.x, 2) + pow(velo.y, 2) + pow(velo.z, 2));
     
     if(mag < 0)
         mag = 0;
     
     mag *= 255;
     
-    float normD = (yeet - 0) / (1 - 0);
+    float normD = (dens - 0) / (1 - 0);
     
     float normV = (mag - 0) / (1 - 0);
     
     
     if (normD <= 0)
         normD = 0.01;
-
-    //yeet = saturate(yeet);
             
     return float4(0, 0, 0, normD);
 }

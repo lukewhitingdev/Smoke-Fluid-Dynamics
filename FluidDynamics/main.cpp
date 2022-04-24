@@ -53,6 +53,8 @@ ID3D11Buffer*           g_pLightConstantBuffer = nullptr;
 GameObject*		gameObject;
 std::vector<GameObject*> gameObjects;
 
+FLOAT bg[3] = { 0,0,0 };
+
 Window* window = Window::getInstance();
 D3D* direct3D = D3D::getInstance();
 
@@ -219,9 +221,18 @@ void RenderUI()
     static bool editingVoxel;
 
     ImGui::Begin("Voxel Controls");
-    ImGui::SliderInt("Select Voxel X", &selectedPosX, 0, cfd->getGridWidth());
-    ImGui::SliderInt("Select Voxel Y", &selectedPosY, 0, cfd->getGridHeight());
-    ImGui::SliderInt("Select Voxel Z", &selectedPosZ, 0, cfd->getGridHeight());
+
+    if(cfd->getDimensions() == 2)
+    {
+        ImGui::SliderInt("Select Voxel X", &selectedPosY, 0, cfd->getGridHeight());
+        ImGui::SliderInt("Select Voxel Y", &selectedPosX, 0, cfd->getGridHeight());
+    }
+    else
+    {
+        ImGui::SliderInt("Select Voxel X", &selectedPosZ, 0, cfd->getGridHeight());
+        ImGui::SliderInt("Select Voxel Y", &selectedPosY, 0, cfd->getGridHeight());
+        ImGui::SliderInt("Select Voxel Z", &selectedPosX, 0, cfd->getGridHeight());
+    }
 
     CFD::CFDVoxel vox = cfd->getVoxel(Vector3(selectedPosX, selectedPosY, selectedPosZ));
     gridComponent->setSelectedGridItem(Vector3(selectedPosX, selectedPosY, selectedPosZ));
@@ -268,6 +279,7 @@ void RenderUI()
     ImGui::End();
 
     static int domainSize = cfd->getGridSize();
+    static int dimensions = cfd->getDimensions();
     static float diffusionRate = cfd->getDiffusionRate();
     static float viscocityRate = cfd->getViscocity();
     static int veloMinMax;
@@ -284,11 +296,14 @@ void RenderUI()
     ImGui::SliderInt("Random Velocity MinMax", &veloMinMax, 0, 10);
     cfd->setRandomVelocityMinMax(veloMinMax);
 
+    ImGui::SliderInt("Dimensions", &dimensions, 2, 3);
+
+    cfd->setDimensions(dimensions);
+
     ImGui::Separator();
 
     if (ImGui::Button("Save"))
     {
-        int dimensions = 3;
         if (dimensions == 3)
             gridComponent->GenerateGrid(domainSize, domainSize, domainSize);
         else
@@ -389,7 +404,7 @@ void Update()
 void Render()
 {
     // Clear the back buffer
-    direct3D->immediateContext->ClearRenderTargetView( direct3D->renderTargetView, Colors::Red );
+    direct3D->immediateContext->ClearRenderTargetView( direct3D->renderTargetView, Colors::DarkRed);
 
     // Clear the depth buffer to 1.0 (max depth)
     direct3D->immediateContext->ClearDepthStencilView(direct3D->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );

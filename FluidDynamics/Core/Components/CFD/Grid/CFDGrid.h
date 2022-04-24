@@ -300,6 +300,9 @@ namespace CFD
 		// Sets the random velocity min max used in the turbulence simulation/
 		void setRandomVelocityMinMax(int val) { randomVelocityMinMax = val; };
 
+		void setDimensions(int val) { dimensions = val; }
+		int getDimensions() { return dimensions; }
+
 		// Returns the voxel at the passed in position.
 		CFDVoxel getVoxel(const Vector3& pos);
 
@@ -652,7 +655,7 @@ namespace CFD
 
 		int N;
 		int totalN;
-		int dimensions = 0;
+		int dimensions = 2;
 
 		// ------ Simulation Variables.
 
