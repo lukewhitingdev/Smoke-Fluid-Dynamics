@@ -176,15 +176,18 @@ void CFD::CFDGrid::resetValuesForCurrentFrame()
 
 void CFD::CFDGrid::addRandomVelocity()
 {
-	int randomX = Math::random(0, getGridWidth());
-	int randomY = Math::random(0, getGridHeight());
-	int randomZ = Math::random(0, getGridHeight());
+	if(randomVelocityMinMax > 0)
+	{
+		int randomX = Math::random(0, getGridWidth());
+		int randomY = Math::random(0, getGridHeight());
+		int randomZ = Math::random(0, getGridHeight());
 
-	int randomValX = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
-	int randomValY = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
-	int randomValZ = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
+		int randomValX = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
+		int randomValY = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
+		int randomValZ = Math::random(-randomVelocityMinMax, randomVelocityMinMax);
 
-	addVelocity(Vector3(randomX, randomY, (dimensions > 2) ? randomZ : 0), Vector3(randomValX, randomValY, (dimensions > 2) ? randomValZ : 0));
+		addVelocity(Vector3(randomX, randomY, (dimensions > 2) ? randomZ : 0), Vector3(randomValX, randomValY, (dimensions > 2) ? randomValZ : 0));
+	}
 }
 
 void CFD::CFDGrid::updateForces()

@@ -154,10 +154,10 @@ void LineMesh::setMatricies(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* proj
 
 void LineMesh::createInstancedGrid(int w, int h, int d)
 {
+
 	width = w;
 	height = h;
 	depth = d;
-
 
 	instanceCount = width * height * depth;
 	Instance* instances;

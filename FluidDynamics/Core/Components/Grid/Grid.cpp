@@ -37,8 +37,12 @@ void Grid::GenerateGrid(const int Xmax, const int Ymax, const int Zmax)
 
 	const unsigned long vertexBufferSize = width * height * depth;
 
-	lineMeshInstancer = new GameObject();
-	lineMeshComponent = lineMeshInstancer->addComponent<LineMesh>();
+	if(lineMeshInstancer == nullptr)
+		lineMeshInstancer = new GameObject();
+
+	if(lineMeshComponent == nullptr)
+		lineMeshComponent = lineMeshInstancer->addComponent<LineMesh>();
+
 	lineMeshComponent->setMatricies(matrixBuffer.mView, matrixBuffer.mProjection);
 	lineMeshComponent->createInstancedGrid(width, height, depth);
 	lineMeshInstancer->removeMesh();

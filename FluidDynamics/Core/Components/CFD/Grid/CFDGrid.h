@@ -27,6 +27,12 @@ namespace CFD
 			}
 		}
 
+		~VoxelData()
+		{
+			delete[] curr;
+			delete[] prev;
+		}
+
 		// Increases the current value at the passed in position.
 		void increaseCurrentValue(const Vector3& pos, const float val) { setCurrentValue(pos, getCurrentValue(pos) + val); }
 
@@ -213,6 +219,14 @@ namespace CFD
 			velocityZ = new VoxelData(sizeSize, totalSize);
 		};
 
+		~CFDData()
+		{
+			delete density;
+			delete velocityX;
+			delete velocityY;
+			delete velocityZ;
+		}
+
 		VoxelData* density;
 		VoxelData* velocityX;
 		VoxelData* velocityY;
@@ -250,15 +264,31 @@ namespace CFD
 
 		// Sets the simulation grid size.
 		void setGrid(const int size, const int dim) {
+
+			if(voxels != nullptr)
+			{
+				delete voxels;
+				delete[] densityTextureData;
+				delete[] velocityTextureData;
+
+				if(voxelDensTex) voxelDensTex->Release();
+				if (voxelDensView) voxelDensView->Release();
+				if (voxelDensResource) voxelDensResource->Release();
+				if (voxelVeloTex) voxelVeloTex->Release();
+				if (voxelVeloView) voxelVeloView->Release();
+				if (voxelVeloResource) voxelVeloResource->Release();
+				if (sampler) sampler->Release();
+
+				queuedDensities.clear();
+				queuedVelocities.clear();
+			}
+
 			N = size;
 			dimensions = dim;
 			totalN = int(pow((N+2), 3));
 			voxels = new CFDData(N, totalN);
 			densityTextureData = new float[totalN];
 			velocityTextureData = new Vector4[totalN];
-
-			queuedDensities.clear();
-			queuedVelocities.clear();
 		};
 
 		void Update(float deltaTime);
