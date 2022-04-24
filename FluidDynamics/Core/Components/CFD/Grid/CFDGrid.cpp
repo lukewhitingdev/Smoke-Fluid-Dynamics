@@ -94,7 +94,7 @@ void CFDGrid::Update(float deltaTime)
 
 		addRandomVelocity();
 
-		//velocityStep(0.1f);
+		velocityStep(0.1f);
 		densityStep(0.1f);
 
 		//printGrid();
@@ -240,6 +240,7 @@ void CFD::CFDGrid::velocityStep(float deltaTime)
 	updateDiffusion<float>(voxels->velocityZ, 3, viscocity, deltaTime);
 
 	//project();
+	updateMassConservation(voxels->velocityX, voxels->velocityY, voxels->velocityZ, deltaTime);
 
 	voxels->velocityX->swapCurrAndPrevArrays();
 	voxels->velocityY->swapCurrAndPrevArrays();
@@ -250,6 +251,8 @@ void CFD::CFDGrid::velocityStep(float deltaTime)
 	updateDiffusionAdvection(voxels->velocityZ, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 3, deltaTime);
 
 	//project();
+	updateMassConservation(voxels->velocityX, voxels->velocityY, voxels->velocityZ, deltaTime);
+
 
 	//vel_step(N, voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(),
 	//			voxels->velocityX->getPreviousArray(), voxels->velocityY->getPreviousArray(), 

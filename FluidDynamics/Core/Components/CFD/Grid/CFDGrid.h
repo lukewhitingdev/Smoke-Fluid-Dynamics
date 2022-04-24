@@ -30,8 +30,13 @@ namespace CFD
 		void increaseCurrentValue(const Vector3& pos, const T& val) { setCurrentValue(pos, getCurrentValue(pos) + val); }
 		void increaseCurrentValue(const int index, const T& val) { setCurrentValue(index, getCurrentValue(index) + val); }
 
+		void decreaseCurrentValue(const int index, const T& val) { setCurrentValue(index, getCurrentValue(index) - val); }
+		void decreaseCurrentValue(const Vector3& pos, const T& val) { setCurrentValue(pos, getCurrentValue(pos) - val); }
+
 		void increasePreviousValue(const Vector3& pos, const T& val) { setPreviousValue(pos, getPreviousValue(pos) + val); }
 		void increasePreviousValue(const int index, const T& val) { setPreviousValue(index, getPreviousValue(index) + val); }
+
+
 
 		void setCurrentValue(const Vector3& pos, const T& val) 
 		{
@@ -328,7 +333,7 @@ namespace CFD
 						}
 					}
 				}
-				set_bnd(N, boundary, data->getCurrentArray());
+				updateCurrentDataBoundary(data, boundary);
 			}
 		};
 
@@ -407,54 +412,142 @@ namespace CFD
 					}
 				}
 			}
-			set_bnd(N, boundary, data->getCurrentArray());
+			updateCurrentDataBoundary(data, boundary);
 		};
 
-		void updateMassConservation()
+		void updateMassConservation(VoxelData<float>* velocityX, VoxelData<float>* velocityY, VoxelData<float>* velocityZ, float deltaTime)
 		{
-			//int i, j;
+			for(int x = 0; x < N; x++)
+			{
+				for (int y = 0; y < N; y++)
+				{
+					for (int z = 0; z < N; z++)
+					{
+						float xDiff = velocityX->getCurrentValue(Vector3(x + 1, y, z)) - velocityX->getCurrentValue(Vector3(x - 1, y, z));
+						float yDiff = velocityY->getCurrentValue(Vector3(x, y+1, z)) - velocityY->getCurrentValue(Vector3(x, y-1, z));
+						float zDiff = velocityZ->getCurrentValue(Vector3(x, y, z+1)) - velocityZ->getCurrentValue(Vector3(x, y, z-1)); // ?
 
-			//for(int x = 0; x < N; x++)
-			//{
-			//	for (int y = 0; y < N; y++)
-			//	{
-			//		for (int z = 0; z < N; z++)
-			//		{
+						float value = -0.5f * (xDiff + yDiff + zDiff) / N;
 
-			//		}
-			//	}
-			//}
-			//	div[IX(i, j)] = -0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
-			//p[IX(i, j)] = 0;
-			//END_FOR
-			//	set_bnd(N, 0, div); set_bnd(N, 0, p);
+						velocityY->setPreviousValue(Vector3(x, y, z), value);
 
-			//lin_solve(N, 0, p, div, 1, 4);
+						velocityX->setPreviousValue(Vector3(x, y, z), 0);
+					}
+				}
+			}
 
-			//FOR_EACH_CELL
-			//	u[IX(i, j)] -= 0.5f * N * (p[IX(i + 1, j)] - p[IX(i - 1, j)]);
-			//v[IX(i, j)] -= 0.5f * N * (p[IX(i, j + 1)] - p[IX(i, j - 1)]);
-			//END_FOR
-			//	set_bnd(N, 1, u); set_bnd(N, 2, v);
+			updatePreviousDataBoundary(velocityX, 0);
+			updatePreviousDataBoundary(velocityY, 0);
+			updatePreviousDataBoundary(velocityZ, 0);
+
+			float k = 1;
+			float c = 4;
+
+			for (int i = 0; i < 20; i++)
+			{
+				for (int x = 0; x < N; x++)
+				{
+					for (int y = 0; y < N; y++)
+					{
+						for (int z = 0; z < N; z++)
+						{
+							float totalSurroundingValues;
+							float x0, x1, y0, y1, z0, z1;
+							float prev;
+							float value;
+							if (dimensions > 2)
+							{
+								totalSurroundingValues = velocityX->getCurrentValue(Vector3(x - 1, y, z)) + velocityX->getCurrentValue(Vector3(x + 1, y, z))
+									+ velocityX->getCurrentValue(Vector3(x, y - 1, z)) + velocityX->getCurrentValue(Vector3(x, y + 1, z))
+									+ velocityX->getCurrentValue(Vector3(x, y, z - 1)) + velocityX->getCurrentValue(Vector3(x, y, z + 1)); // z.
+
+								x0 = velocityY->getCurrentValue(Vector3(x - 1, y, z));
+								x1 = velocityY->getCurrentValue(Vector3(x + 1, y, z));
+
+								y0 = velocityY->getCurrentValue(Vector3(x, y - 1, z));
+								y1 = velocityY->getCurrentValue(Vector3(x, y + 1, z));
+
+								z0 = velocityY->getCurrentValue(Vector3(x, y, z - 1));
+								z1 = velocityY->getCurrentValue(Vector3(x, y, z + 1));
+
+								prev = velocityX->getPreviousValue(Vector3(x, y, z));
+
+								value = (prev + k * (x0 + x1 + y0 + y1 + z0 + z1)) / c;
+							}
+							else
+							{
+								totalSurroundingValues = velocityX->getCurrentValue(Vector3(x - 1, y, z)) + velocityX->getCurrentValue(Vector3(x + 1, y, z))
+									+ velocityX->getCurrentValue(Vector3(x, y - 1, z)) + velocityX->getCurrentValue(Vector3(x, y + 1, z)); // z.
+
+								x0 = velocityY->getCurrentValue(Vector3(x - 1, y, z));
+								x1 = velocityY->getCurrentValue(Vector3(x + 1, y, z));
+
+								y0 = velocityY->getCurrentValue(Vector3(x, y - 1, z));
+								y1 = velocityY->getCurrentValue(Vector3(x, y + 1, z));
+
+								prev = velocityX->getPreviousValue(Vector3(x, y, z));
+
+								value = (prev + k * (x0 + x1 + y0 + y1)) / c;
+							}
+							velocityX->setCurrentValue(Vector3(x, y, z), value);
+						}
+					}
+				}
+				updateCurrentDataBoundary(velocityX, 0);
+			}
+
+			for (int x = 0; x < N; x++)
+			{
+				for (int y = 0; y < N; y++)
+				{
+					for (int z = 0; z < N; z++)
+					{
+						float xDiff = velocityX->getPreviousValue(Vector3(x + 1, y, z)) - velocityX->getPreviousValue(Vector3(x - 1, y, z));
+						float yDiff = velocityX->getPreviousValue(Vector3(x, y+1, z)) - velocityX->getPreviousValue(Vector3(x, y+1, z));
+						float zDiff = velocityX->getPreviousValue(Vector3(x, y, z+1)) - velocityX->getPreviousValue(Vector3(x, y, z+1));
+
+						velocityX->decreaseCurrentValue(Vector3(x, y, z), 0.5f * N * xDiff);
+						velocityY->decreaseCurrentValue(Vector3(x, y, z), 0.5f * N * yDiff);
+						velocityZ->decreaseCurrentValue(Vector3(x, y, z), 0.5f * N * zDiff);
+					}
+				}
+			}
+
+			updateCurrentDataBoundary(velocityX, 1);
+			updateCurrentDataBoundary(velocityY, 2);
+			updateCurrentDataBoundary(velocityZ, 3);
 		}
 
-		#define IX(i,j) ((i)+(N+2)*(j))
-
-		// Holdover
-		void set_bnd(int N, int b, float* x)
+		void updateCurrentDataBoundary(VoxelData<float>* data, int boundary)
 		{
-			int i;
+			for (int i = 0; i < N; i++) {
 
-			for (i = 0; i < N; i++) {
-				x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
-				x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
-				x[IX(i, 0)] = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
-				x[IX(i, N + 1)] = b == 2 ? -x[IX(i, N)] : x[IX(i, N)];
+				data->setCurrentValue(Vector3(0, i, 0), (boundary == 1) ? -data->getCurrentValue(Vector3(1, i, 0)) : data->getCurrentValue(Vector3(1, i, 0)));
+				data->setCurrentValue(Vector3(N + 1, i, 0), (boundary == 1) ? -data->getCurrentValue(Vector3(N, i, 0)) : data->getCurrentValue(Vector3(N, i, 0)));
+				data->setCurrentValue(Vector3(i, 0, 0), (boundary == 1) ? -data->getCurrentValue(Vector3(i, 0, 0)) : data->getCurrentValue(Vector3(i, 0, 0)));
+				data->setCurrentValue(Vector3(i, N+1, 0), (boundary == 1) ? -data->getCurrentValue(Vector3(i, N, 0)) : data->getCurrentValue(Vector3(i, N, 0)));
 			}
-			x[IX(0, 0)] = 0.5f * (x[IX(1, 0)] + x[IX(0, 1)]);
-			x[IX(0, N + 1)] = 0.5f * (x[IX(1, N + 1)] + x[IX(0, N)]);
-			x[IX(N + 1, 0)] = 0.5f * (x[IX(N, 0)] + x[IX(N + 1, 1)]);
-			x[IX(N + 1, N + 1)] = 0.5f * (x[IX(N, N + 1)] + x[IX(N + 1, N)]);
+
+			data->setCurrentValue(Vector3(0, 0, 0), 0.5f * (data->getCurrentValue(Vector3(1, 0, 0)) + data->getCurrentValue(Vector3(0, 1, 0))));
+			data->setCurrentValue(Vector3(0, N + 1, 0), 0.5f * (data->getCurrentValue(Vector3(1, N + 1, 0)) + data->getCurrentValue(Vector3(0, N, 0))));
+			data->setCurrentValue(Vector3(N + 1, 0, 0), 0.5f * (data->getCurrentValue(Vector3(N, 0, 0)) + data->getCurrentValue(Vector3(N + 1, 1, 0))));
+			data->setCurrentValue(Vector3(N+1, N+1, 0), 0.5f * (data->getCurrentValue(Vector3(N,N+1,0)) + data->getCurrentValue(Vector3(N+1, N, 0))));
+		}
+
+		void updatePreviousDataBoundary(VoxelData<float>* data, int boundary)
+		{
+			for (int i = 0; i < N; i++) {
+
+				data->setPreviousValue(Vector3(0, i, 0), (boundary == 1) ? -data->getPreviousValue(Vector3(1, i, 0)) : data->getPreviousValue(Vector3(1, i, 0)));
+				data->setPreviousValue(Vector3(N + 1, i, 0), (boundary == 1) ? -data->getPreviousValue(Vector3(N, i, 0)) : data->getPreviousValue(Vector3(N, i, 0)));
+				data->setPreviousValue(Vector3(i, 0, 0), (boundary == 1) ? -data->getPreviousValue(Vector3(i, 0, 0)) : data->getPreviousValue(Vector3(i, 0, 0)));
+				data->setPreviousValue(Vector3(i, N + 1, 0), (boundary == 1) ? -data->getPreviousValue(Vector3(i, N, 0)) : data->getPreviousValue(Vector3(i, N, 0)));
+			}
+
+			data->setPreviousValue(Vector3(0, 0, 0), 0.5f * (data->getPreviousValue(Vector3(1, 0, 0)) + data->getPreviousValue(Vector3(0, 1, 0))));
+			data->setPreviousValue(Vector3(0, N + 1, 0), 0.5f * (data->getPreviousValue(Vector3(1, N + 1, 0)) + data->getPreviousValue(Vector3(0, N, 0))));
+			data->setPreviousValue(Vector3(N + 1, 0, 0), 0.5f * (data->getPreviousValue(Vector3(N, 0, 0)) + data->getPreviousValue(Vector3(N + 1, 1, 0))));
+			data->setPreviousValue(Vector3(N + 1, N + 1, 0), 0.5f * (data->getPreviousValue(Vector3(N, N + 1, 0)) + data->getPreviousValue(Vector3(N + 1, N, 0))));
 		}
 
 		void velocityStep(float deltaTime);

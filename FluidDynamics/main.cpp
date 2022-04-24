@@ -288,7 +288,7 @@ void RenderUI()
 
     if (ImGui::Button("Save"))
     {
-        int dimensions = 2;
+        int dimensions = 3;
         if (dimensions == 3)
             gridComponent->GenerateGrid(domainSize, domainSize, domainSize);
         else
