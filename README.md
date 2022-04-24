@@ -1,6 +1,6 @@
 # Smoke-Fluid-Dynamics
 
-## Hello! This is my Final Year Project created at University
+### Hello! 👋  This is my Final Year Project created at University
 
 # Controls
 WSAD - Move Camera Position
