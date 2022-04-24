@@ -218,7 +218,7 @@ void CFD::CFDGrid::densityStep(float deltaTime)
 
 	voxels->density->swapCurrAndPrevArrays();
 
-	updateDiffusion(voxels->density, 0, deltaTime);
+	updateDiffusion<float>(voxels->density, 0, diffusionRate, deltaTime);
 
 	voxels->density->swapCurrAndPrevArrays();
 
@@ -227,9 +227,33 @@ void CFD::CFDGrid::densityStep(float deltaTime)
 
 void CFD::CFDGrid::velocityStep(float deltaTime)
 {
-	vel_step(N, voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(),
-				voxels->velocityX->getPreviousArray(), voxels->velocityY->getPreviousArray(), 
-				viscocity, deltaTime);
+	updateFromPreviousFrame<float>(voxels->velocityX, deltaTime);
+	updateFromPreviousFrame<float>(voxels->velocityY, deltaTime);
+	updateFromPreviousFrame<float>(voxels->velocityZ, deltaTime);
+
+	voxels->velocityX->swapCurrAndPrevArrays();
+	voxels->velocityY->swapCurrAndPrevArrays();
+	voxels->velocityZ->swapCurrAndPrevArrays();
+
+	updateDiffusion<float>(voxels->velocityX, 1, viscocity, deltaTime);
+	updateDiffusion<float>(voxels->velocityY, 2, viscocity, deltaTime);
+	updateDiffusion<float>(voxels->velocityZ, 3, viscocity, deltaTime);
+
+	//project();
+
+	voxels->velocityX->swapCurrAndPrevArrays();
+	voxels->velocityY->swapCurrAndPrevArrays();
+	voxels->velocityZ->swapCurrAndPrevArrays();
+
+	updateDiffusionAdvection(voxels->velocityX, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 1, deltaTime);
+	updateDiffusionAdvection(voxels->velocityY, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 2, deltaTime);
+	updateDiffusionAdvection(voxels->velocityZ, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 3, deltaTime);
+
+	//project();
+
+	//vel_step(N, voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(),
+	//			voxels->velocityX->getPreviousArray(), voxels->velocityY->getPreviousArray(), 
+	//			viscocity, deltaTime);
 }
 
 

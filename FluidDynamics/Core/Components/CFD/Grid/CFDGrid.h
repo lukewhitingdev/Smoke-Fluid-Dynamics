@@ -273,9 +273,9 @@ namespace CFD
 		}
 
 		template<typename T>
-		void updateDiffusion(VoxelData<T>* data, float boundary, float deltaTime) 
+		void updateDiffusion(VoxelData<T>* data, float boundary, float diff, float deltaTime) 
 		{
-			float k = deltaTime * diffusionRate * pow(N, dimensions);
+			float k = deltaTime * diff * pow(N, dimensions);
 			float c = (dimensions > 2) ? 1 + 6 * k : 1 + 4 * k;
 		
 			for (int i = 0; i < 20; i++) 
@@ -410,6 +410,33 @@ namespace CFD
 			set_bnd(N, boundary, data->getCurrentArray());
 		};
 
+		void updateMassConservation()
+		{
+			//int i, j;
+
+			//for(int x = 0; x < N; x++)
+			//{
+			//	for (int y = 0; y < N; y++)
+			//	{
+			//		for (int z = 0; z < N; z++)
+			//		{
+
+			//		}
+			//	}
+			//}
+			//	div[IX(i, j)] = -0.5f * (u[IX(i + 1, j)] - u[IX(i - 1, j)] + v[IX(i, j + 1)] - v[IX(i, j - 1)]) / N;
+			//p[IX(i, j)] = 0;
+			//END_FOR
+			//	set_bnd(N, 0, div); set_bnd(N, 0, p);
+
+			//lin_solve(N, 0, p, div, 1, 4);
+
+			//FOR_EACH_CELL
+			//	u[IX(i, j)] -= 0.5f * N * (p[IX(i + 1, j)] - p[IX(i - 1, j)]);
+			//v[IX(i, j)] -= 0.5f * N * (p[IX(i, j + 1)] - p[IX(i, j - 1)]);
+			//END_FOR
+			//	set_bnd(N, 1, u); set_bnd(N, 2, v);
+		}
 
 		#define IX(i,j) ((i)+(N+2)*(j))
 
