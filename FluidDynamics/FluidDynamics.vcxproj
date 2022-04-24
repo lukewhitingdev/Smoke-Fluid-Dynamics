@@ -364,7 +364,6 @@
   <ItemGroup>
     <ClCompile Include="Core\Components\CFD\Grid\CFDGrid.cpp" />
     <ClCompile Include="Core\Components\Camera\Camera.cpp" />
-    <ClCompile Include="Dependencies\Physics\solver.c" />
     <ClCompile Include="Dependencies\Textures\DDSTextureLoader.cpp" />
     <ClCompile Include="Core\Entities\GameObject.cpp" />
     <ClCompile Include="Core\Components\Grid\Grid.cpp" />

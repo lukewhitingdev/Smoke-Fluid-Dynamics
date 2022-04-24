@@ -1,7 +1,6 @@
 #include "CFDGrid.h"
 #include <iostream>
 #include <fstream>
-#include <Dependencies\Physics\solver.c>
 #include <string>
 
 using namespace CFD;
@@ -86,8 +85,6 @@ void CFDGrid::Update(float deltaTime)
 
 	if(simulating)
 	{
-		printf("Frame %d \n", frame);
-
 		resetValuesForCurrentFrame();
 
 		updateForces();
@@ -96,12 +93,6 @@ void CFDGrid::Update(float deltaTime)
 
 		velocityStep(0.1f);
 		densityStep(0.1f);
-
-		//printGrid();
-
-		//setDebugDensityValues();
-
-		frame++;
 	}
 }
 
@@ -132,10 +123,9 @@ void CFDGrid::Render()
 			}
 		}
 
-		direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, (dimensions > 2) ? pow(sizeof(float), dimensions) : 0);
+		direct3D->immediateContext->UpdateSubresource(voxelDensTex, 0, nullptr, densityTextureData, sizeof(float) * N, (dimensions > 2) ? UINT(pow(sizeof(float), dimensions)) : 0);
 
-		// Seems to be issue with alignment or offset when setting the resource.
-		direct3D->immediateContext->UpdateSubresource(voxelVeloTex, 0, nullptr, velocityTextureData, sizeof(Vector4) * N, (dimensions > 2) ? pow(sizeof(Vector4), dimensions) : 0);
+		direct3D->immediateContext->UpdateSubresource(voxelVeloTex, 0, nullptr, velocityTextureData, sizeof(Vector4) * N, (dimensions > 2) ? UINT(pow(sizeof(Vector4), dimensions)) : 0);
 
 		direct3D->immediateContext->PSSetSamplers(0, 1, &sampler);
 		direct3D->immediateContext->PSSetShaderResources(0, 1, &voxelDensView);
@@ -214,112 +204,60 @@ void CFD::CFDGrid::updateForces()
 
 void CFD::CFDGrid::densityStep(float deltaTime)
 {
-	updateFromPreviousFrame<float>(voxels->density, deltaTime);
+	updateFromPreviousFrame(voxels->density, deltaTime);
 
 	voxels->density->swapCurrAndPrevArrays();
 
-	updateDiffusion<float>(voxels->density, 0, diffusionRate, deltaTime);
+	updateDiffusion(voxels->density, 0, diffusionRate, deltaTime);
 
 	voxels->density->swapCurrAndPrevArrays();
 
-	updateDiffusionAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
+	updateAdvection(voxels->density, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 0, deltaTime);
 }
 
 void CFD::CFDGrid::velocityStep(float deltaTime)
 {
-	updateFromPreviousFrame<float>(voxels->velocityX, deltaTime);
-	updateFromPreviousFrame<float>(voxels->velocityY, deltaTime);
-	updateFromPreviousFrame<float>(voxels->velocityZ, deltaTime);
+	updateFromPreviousFrame(voxels->velocityX, deltaTime);
+	updateFromPreviousFrame(voxels->velocityY, deltaTime);
+	updateFromPreviousFrame(voxels->velocityZ, deltaTime);
 
 	voxels->velocityX->swapCurrAndPrevArrays();
 	voxels->velocityY->swapCurrAndPrevArrays();
 	voxels->velocityZ->swapCurrAndPrevArrays();
 
-	updateDiffusion<float>(voxels->velocityX, 1, viscocity, deltaTime);
-	updateDiffusion<float>(voxels->velocityY, 2, viscocity, deltaTime);
-	updateDiffusion<float>(voxels->velocityZ, 3, viscocity, deltaTime);
+	updateDiffusion(voxels->velocityX, 1, viscocity, deltaTime);
+	updateDiffusion(voxels->velocityY, 2, viscocity, deltaTime);
+	updateDiffusion(voxels->velocityZ, 3, viscocity, deltaTime);
 
-	//project();
 	updateMassConservation(voxels->velocityX, voxels->velocityY, voxels->velocityZ, deltaTime);
 
 	voxels->velocityX->swapCurrAndPrevArrays();
 	voxels->velocityY->swapCurrAndPrevArrays();
 	voxels->velocityZ->swapCurrAndPrevArrays();
 
-	updateDiffusionAdvection(voxels->velocityX, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 1, deltaTime);
-	updateDiffusionAdvection(voxels->velocityY, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 2, deltaTime);
-	updateDiffusionAdvection(voxels->velocityZ, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 3, deltaTime);
+	updateAdvection(voxels->velocityX, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 1, deltaTime);
+	updateAdvection(voxels->velocityY, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 2, deltaTime);
+	updateAdvection(voxels->velocityZ, voxels->velocityX, voxels->velocityY, voxels->velocityZ, 3, deltaTime);
 
-	//project();
 	updateMassConservation(voxels->velocityX, voxels->velocityY, voxels->velocityZ, deltaTime);
-
-
-	//vel_step(N, voxels->velocityX->getCurrentArray(), voxels->velocityY->getCurrentArray(),
-	//			voxels->velocityX->getPreviousArray(), voxels->velocityY->getPreviousArray(), 
-	//			viscocity, deltaTime);
 }
 
 
 void CFD::CFDGrid::setDebugVelocityValues()
 {
-	voxels->velocityX->setCurrentValue(Vector3(0, 1, 0), 01);
-	voxels->velocityX->setCurrentValue(Vector3(0, 2, 0), 02);
-	voxels->velocityX->setCurrentValue(Vector3(0, 3, 0), 03);
-	voxels->velocityX->setCurrentValue(Vector3(0, 4, 0), 04);
-
-	voxels->velocityX->setCurrentValue(Vector3(1, 0, 0), 10);
-	voxels->velocityX->setCurrentValue(Vector3(1, 1, 0), 11);
-	voxels->velocityX->setCurrentValue(Vector3(1, 2, 0), 12);
-	voxels->velocityX->setCurrentValue(Vector3(1, 3, 0), 13);
-	voxels->velocityX->setCurrentValue(Vector3(1, 4, 0), 14);
-
-	voxels->velocityX->setCurrentValue(Vector3(2, 0, 0), 20);
-	voxels->velocityX->setCurrentValue(Vector3(2, 1, 0), 21);
-	voxels->velocityX->setCurrentValue(Vector3(2, 2, 0), 22);
-	voxels->velocityX->setCurrentValue(Vector3(2, 3, 0), 23);
-	voxels->velocityX->setCurrentValue(Vector3(2, 4, 0), 24);
-
-	voxels->velocityX->setCurrentValue(Vector3(3, 0, 0), 30);
-	voxels->velocityX->setCurrentValue(Vector3(3, 1, 0), 31);
-	voxels->velocityX->setCurrentValue(Vector3(3, 2, 0), 32);
-	voxels->velocityX->setCurrentValue(Vector3(3, 3, 0), 33);
-	voxels->velocityX->setCurrentValue(Vector3(3, 4, 0), 34);
-
-	voxels->velocityX->setCurrentValue(Vector3(4, 0, 0), 40);
-	voxels->velocityX->setCurrentValue(Vector3(4, 1, 0), 41);
-	voxels->velocityX->setCurrentValue(Vector3(4, 2, 0), 42);
-	voxels->velocityX->setCurrentValue(Vector3(4, 3, 0), 43);
-	voxels->velocityX->setCurrentValue(Vector3(4, 4, 0), 44);
-
-
-	voxels->velocityY->setCurrentValue(Vector3(0, 1, 0), 01);
-	voxels->velocityY->setCurrentValue(Vector3(0, 2, 0), 02);
-	voxels->velocityY->setCurrentValue(Vector3(0, 3, 0), 03);
-	voxels->velocityY->setCurrentValue(Vector3(0, 4, 0), 04);
-
-	voxels->velocityY->setCurrentValue(Vector3(1, 0, 0), 10);
-	voxels->velocityY->setCurrentValue(Vector3(1, 1, 0), 11);
-	voxels->velocityY->setCurrentValue(Vector3(1, 2, 0), 12);
-	voxels->velocityY->setCurrentValue(Vector3(1, 3, 0), 13);
-	voxels->velocityY->setCurrentValue(Vector3(1, 4, 0), 14);
-
-	voxels->velocityY->setCurrentValue(Vector3(2, 0, 0), 20);
-	voxels->velocityY->setCurrentValue(Vector3(2, 1, 0), 21);
-	voxels->velocityY->setCurrentValue(Vector3(2, 2, 0), 22);
-	voxels->velocityY->setCurrentValue(Vector3(2, 3, 0), 23);
-	voxels->velocityY->setCurrentValue(Vector3(2, 4, 0), 24);
-
-	voxels->velocityY->setCurrentValue(Vector3(3, 0, 0), 30);
-	voxels->velocityY->setCurrentValue(Vector3(3, 1, 0), 31);
-	voxels->velocityY->setCurrentValue(Vector3(3, 2, 0), 32);
-	voxels->velocityY->setCurrentValue(Vector3(3, 3, 0), 33);
-	voxels->velocityY->setCurrentValue(Vector3(3, 4, 0), 34);
-
-	voxels->velocityY->setCurrentValue(Vector3(4, 0, 0), 40);
-	voxels->velocityY->setCurrentValue(Vector3(4, 1, 0), 41);
-	voxels->velocityY->setCurrentValue(Vector3(4, 2, 0), 42);
-	voxels->velocityY->setCurrentValue(Vector3(4, 3, 0), 43);
-	voxels->velocityY->setCurrentValue(Vector3(4, 4, 0), 44);
+	for (int x = 0; x < N; ++x)
+	{
+		for (int y = 0; y < N; ++y)
+		{
+			for (int z = 0; z < N; ++z)
+			{
+				std::string concat = std::to_string(x + 1) + std::to_string(y + 1) + std::to_string(z + 1);
+				voxels->velocityX->setCurrentValue(Vector3(x, y, z), float(std::stoi(concat)));
+				voxels->velocityY->setCurrentValue(Vector3(x, y, z), float(std::stoi(concat)));
+				voxels->velocityZ->setCurrentValue(Vector3(x, y, z), float(std::stoi(concat)));
+			}
+		}
+	}
 }
 
 void CFD::CFDGrid::setDebugDensityValues()
@@ -331,7 +269,7 @@ void CFD::CFDGrid::setDebugDensityValues()
 			for (int z = 0; z < N; ++z)
 			{
 				std::string concat = std::to_string(x+1) + std::to_string(y+1) + std::to_string(z+1);
-				voxels->density->setCurrentValue(Vector3(x, y, z), std::stoi(concat));
+				voxels->density->setCurrentValue(Vector3(x, y, z), float(std::stoi(concat)));
 			}
 		}
 	}

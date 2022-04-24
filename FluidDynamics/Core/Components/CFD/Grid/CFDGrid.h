@@ -8,17 +8,17 @@
 
 namespace CFD
 {
-	template<typename T>
+	// Holds the previous and current data for a energy in the simulation
 	struct VoxelData
 	{
-		VoxelData<T>() : curr(nullptr), prev(nullptr) {};
+		VoxelData() : N(0), curr(nullptr), prev(nullptr) {};
 
-		VoxelData<T>(int sideSize, int totalSize)
+		VoxelData(int sideSize, int totalSize)
 		{
 			N = sideSize;
 			arraySize = totalSize;
-			curr = new T[arraySize];
-			prev = new T[arraySize];
+			curr = new float[arraySize];
+			prev = new float[arraySize];
 
 			for(int i = 0; i < arraySize; ++i)
 			{
@@ -27,18 +27,26 @@ namespace CFD
 			}
 		}
 
-		void increaseCurrentValue(const Vector3& pos, const T& val) { setCurrentValue(pos, getCurrentValue(pos) + val); }
-		void increaseCurrentValue(const int index, const T& val) { setCurrentValue(index, getCurrentValue(index) + val); }
+		// Increases the current value at the passed in position.
+		void increaseCurrentValue(const Vector3& pos, const float val) { setCurrentValue(pos, getCurrentValue(pos) + val); }
 
-		void decreaseCurrentValue(const int index, const T& val) { setCurrentValue(index, getCurrentValue(index) - val); }
-		void decreaseCurrentValue(const Vector3& pos, const T& val) { setCurrentValue(pos, getCurrentValue(pos) - val); }
+		// Increases the current value at the passed in index.
+		void increaseCurrentValue(const int index, const float val) { setCurrentValue(index, getCurrentValue(index) + val); }
 
-		void increasePreviousValue(const Vector3& pos, const T& val) { setPreviousValue(pos, getPreviousValue(pos) + val); }
-		void increasePreviousValue(const int index, const T& val) { setPreviousValue(index, getPreviousValue(index) + val); }
+		// Decreases the current value at the passed in index.
+		void decreaseCurrentValue(const int index, const float val) { setCurrentValue(index, getCurrentValue(index) - val); }
 
+		// Decreases the current value at the passed in index.
+		void decreaseCurrentValue(const Vector3& pos, const float val) { setCurrentValue(pos, getCurrentValue(pos) - val); }
 
+		// Increases the previous value at the passed in position.
+		void increasePreviousValue(const Vector3& pos, const float val) { setPreviousValue(pos, getPreviousValue(pos) + val); }
 
-		void setCurrentValue(const Vector3& pos, const T& val) 
+		// Increases the previous value at the passed in index.
+		void increasePreviousValue(const int index, const float val) { setPreviousValue(index, getPreviousValue(index) + val); }
+
+		// Sets the current value at the passed in position.
+		void setCurrentValue(const Vector3& pos, const float val) 
 		{
 			int index = getIndex(pos);
 
@@ -52,7 +60,9 @@ namespace CFD
 				printf("Tried to assign a value to a voxel that is out of array range!. : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
 			}
 		}
-		void setCurrentValue(const int index, const T& val) 
+
+		// Sets the current value at the passed in index.
+		void setCurrentValue(const int index, const float val) 
 		{
 			if (index <= arraySize)
 			{
@@ -64,7 +74,9 @@ namespace CFD
 				printf("Tried to assign a value to a voxel index that is out of array range!. : (%d) \n", index);
 			}
 		}
-		T getCurrentValue(const Vector3& pos) 
+
+		// Gets the current value at the passed in position.
+		float getCurrentValue(const Vector3& pos) 
 		{
 			int index = getIndex(pos);
 
@@ -76,10 +88,12 @@ namespace CFD
 			{
 				// Log.
 				printf("Tried to get a voxel value that is out of range! : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
-				return T();
+				return 0.0f;
 			}
 		}
-		T getCurrentValue(const int index) 
+
+		// Gets the current value at the passed in index.
+		float getCurrentValue(const int index) 
 		{
 			if (index <= arraySize)
 			{
@@ -88,12 +102,13 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to get a voxel value that is out of range! : (%f) \n", index);
-				return T();
+				printf("Tried to get a voxel value that is out of range! : (%d) \n", index);
+				return 0.0f;
 			}
 		}
 
-		void setPreviousValue(const Vector3& pos, const T& val) 
+		// Sets the previous value at the passed in position.
+		void setPreviousValue(const Vector3& pos, const float val) 
 		{
 			int index = getIndex(pos);
 
@@ -107,7 +122,9 @@ namespace CFD
 				printf("Tried to assign a value to a voxel that is out of array range!. : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
 			}
 		}
-		void setPreviousValue(const int index, const T& val) 
+
+		// Sets the previous value at the passed in index.
+		void setPreviousValue(const int index, const float val) 
 		{
 			if (index <= arraySize)
 			{
@@ -119,7 +136,9 @@ namespace CFD
 				printf("Tried to assign a value to a voxel index that is out of array range!. : (%d) \n", index);
 			}
 		}
-		T getPreviousValue(const Vector3& pos) 
+
+		// Returns the previous value at the passed in position.
+		float getPreviousValue(const Vector3& pos) 
 		{
 			int index = getIndex(pos);
 
@@ -131,10 +150,12 @@ namespace CFD
 			{
 				// Log.
 				printf("Tried to get a voxel value that is out of range! : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
-				return T();
+				return 0.0f;
 			}
 		}
-		T getPreviousValue(const int index) 
+
+		// Returns the previous value at the passed in index.
+		float getPreviousValue(const int index) 
 		{
 			if (index <= arraySize)
 			{
@@ -143,14 +164,18 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to get a voxel value that is out of range! : (%f) \n", index);
-				return T();
+				printf("Tried to get a voxel value that is out of range! : (%d) \n", index);
+				return 0.0f;
 			}
 		}
 
-		T* getCurrentArray() { return curr; }
-		T* getPreviousArray() { return prev; }
+		// Returns the current array.
+		float* getCurrentArray() { return curr; }
 
+		// Returns the previous array.
+		float* getPreviousArray() { return prev; }
+
+		// Swaps the current and previous array pointers.
 		void swapCurrAndPrevArrays() 
 		{
 			float* tmp = prev;
@@ -160,9 +185,9 @@ namespace CFD
 		
 	private:
 
+		// Returns the index in a 1D array from the passed in position.
 		int getIndex(const Vector3& voxelPos) {
-			//int index = int((voxelPos.x) + (N + 2) * (voxelPos.y)); // 2D.
-			int index = N * N * voxelPos.z + voxelPos.y * N + voxelPos.x;
+			int index = int(N * N * voxelPos.z + voxelPos.y * N + voxelPos.x);
 			if (index > arraySize || index < 0)
 				return -1;
 
@@ -173,24 +198,25 @@ namespace CFD
 
 		int arraySize = 0;
 
-		T* curr = nullptr;
-		T* prev = nullptr;
+		float* curr = nullptr;
+		float* prev = nullptr;
 	};
 
+	// Holds the data the voxels within the simulation
 	struct CFDData
 	{
 		CFDData(const int sizeSize, const int totalSize)
 		{
-			density = new VoxelData<float>(sizeSize, totalSize);
-			velocityX = new VoxelData<float>(sizeSize, totalSize);
-			velocityY = new VoxelData<float>(sizeSize, totalSize);
-			velocityZ = new VoxelData<float>(sizeSize, totalSize);
+			density = new VoxelData(sizeSize, totalSize);
+			velocityX = new VoxelData(sizeSize, totalSize);
+			velocityY = new VoxelData(sizeSize, totalSize);
+			velocityZ = new VoxelData(sizeSize, totalSize);
 		};
 
-		VoxelData<float>* density;
-		VoxelData<float>* velocityX;
-		VoxelData<float>* velocityY;
-		VoxelData<float>* velocityZ;
+		VoxelData* density;
+		VoxelData* velocityX;
+		VoxelData* velocityY;
+		VoxelData* velocityZ;
 	};
 
 	// Helper struct to contain general data about the voxel for editing through UI.
@@ -203,6 +229,7 @@ namespace CFD
 		Vector3 velocity;
 	};
 
+	// Helper struct for forces and other items stored in queues.
 	template<typename T>
 	struct QueueItem
 	{
@@ -218,12 +245,14 @@ namespace CFD
 		CFDGrid();
 		~CFDGrid();
 
+		// Starts the simulation
 		void Start();
 
+		// Sets the simulation grid size.
 		void setGrid(const int size, const int dim) {
 			N = size;
 			dimensions = dim;
-			totalN = pow((N+2), 3);
+			totalN = int(pow((N+2), 3));
 			voxels = new CFDData(N, totalN);
 			densityTextureData = new float[totalN];
 			velocityTextureData = new Vector4[totalN];
@@ -235,55 +264,88 @@ namespace CFD
 		void Update(float deltaTime);
 		void Render();
 
+		// Adds density at the passed in position.
 		void addDensity(const Vector3& pos, const float val);
+
+		// Adds velocity at the passed in position.
 		void addVelocity(const Vector3& pos, const Vector3& val);
 
-		int getGridSize() { return pow(N, dimensions); }
+		// Returns the total grid size.
+		int getGridSize() { return int(pow(N, dimensions)); }
+		
+		// Returns the grid width.
 		int getGridWidth() { return N; }
+
+		// Returns the grid height.
 		int getGridHeight() { return N; }
+
+		// Returns the grid depth.
 		int getGridDepth() { return N; }
 
+		// Returns whether the simulation is active.
 		bool getSimulating() { return simulating; }
 
+		// Sets the diffusion rate of the density in the simulation.
 		void setDiffusionRate(float val) { diffusionRate = val; }
+
+		// Returns the diffusion rate of the density in the simulation.
 		float getDiffusionRate() { return diffusionRate; }
 
+		// Sets the viscocity of the velocity in the simulation.
 		void setViscocity(float val) { viscocity = val; }
+
+		// Returns the viscocity of the velocity in the simulation.
 		float getViscocity() { return viscocity; }
 
+		// Sets the random velocity min max used in the turbulence simulation/
 		void setRandomVelocityMinMax(int val) { randomVelocityMinMax = val; };
 
+		// Returns the voxel at the passed in position.
 		CFDVoxel getVoxel(const Vector3& pos);
 
 	private:
 		
-		// Simulation Steps.
+		// Resets all the current frames values of all data in the simulation.
 		void resetValuesForCurrentFrame();
 
+		// Adds random velocity at random points within the simulation, used to simulate turbulence.
 		void addRandomVelocity();
 
+		// Adds forces into the simulation from the queued force lists.
 		void updateForces();
 
+		// Simulates Density for a timestep.
 		void densityStep(float deltaTime);
 
-		// Density Step Unravel.
-		template<typename T>
-		void updateFromPreviousFrame(VoxelData<T>* data, float deltaTime)
+		// Simulates Velocity for a timestep.
+		void velocityStep(float deltaTime);
+
+		// Updates the current frames values incrementally with the previous frames data.
+		void updateFromPreviousFrame(VoxelData* data, float deltaTime)
 		{
-			int size = pow(N+2, dimensions);
+			int size = int(pow(N+2, dimensions));
 			for (int i = 0; i < size; i++)
 			{
 				data->increaseCurrentValue(i, data->getPreviousValue(i) * deltaTime);
 			}
 		}
 
-		template<typename T>
-		void updateDiffusion(VoxelData<T>* data, float boundary, float diff, float deltaTime) 
+		// Updates diffusion for the data passed in, in accordance with the diffusion value passed in.
+		void updateDiffusion(VoxelData* data, float boundary, float diff, float deltaTime) 
 		{
-			float k = deltaTime * diff * pow(N, dimensions);
-			float c = (dimensions > 2) ? 1 + 6 * k : 1 + 4 * k;
+			/*
+			What is going on here:
+				- Loop through every voxel in the grid.
+				- Search their neighbours and sum their density.
+				- Add the ammount of change we want to see from the previous frame (prev + k)
+				- Average / Control the ammount of change with c.
+				- Repeat to get stable results, since we are using a intertive solver.
+			*/
+
+			float k = deltaTime * diff * float(pow(N, dimensions));	// k = ammount of change we want to see in the diffusion step.
+			float c = (dimensions > 2) ? 1 + 6 * k : 1 + 4 * k;     // c = overall change, must be more than k's coefficents so 1+4 for 2D (4 coefficients) and 1+6 for 3D
 		
-			for (int i = 0; i < 20; i++) 
+			for (int i = 0; i < 20; i++)		// Gauss-Seidel relaxation interative steps.
 			{
 				for(int x = 0; x < N; x++)
 				{
@@ -333,17 +395,26 @@ namespace CFD
 						}
 					}
 				}
-				updateCurrentDataBoundary(data, boundary);
+				updateCurrentDataBoundary(data, int(boundary));
 			}
 		};
 
-		void updateDiffusionAdvection(VoxelData<float>* data, VoxelData<float>* velocityDataX, VoxelData<float>* velocityDataY, VoxelData<float>* velocityDataZ, float boundary, float deltaTime)
+		// Updates advection for the data passed in, in accordance with the velocity data passed.
+		void updateAdvection(VoxelData* data, VoxelData* velocityDataX, VoxelData* velocityDataY, VoxelData* velocityDataZ, float boundary, float deltaTime)
 		{
-			float x0, y0, z0, dt0;
-			Vector3 backtracePosition;
-			Vector3 absolutePosition;
+			/*
+			What is going on here:
+				- Loop through every voxel in the grid.
+				- "Backtrace" the voxel using dt0 (deltaTime of one sim-step)
+				- Using the backtraced position interpolate data values from the apporximate neighbours
+				- Apply the interpolates data to the current voxel.
+			*/
 
-			dt0 = deltaTime * pow(N, dimensions);
+			float dt0;					// Deltatime of one iteration through the whole simulation.
+			Vector3 backtracePosition;
+			Vector3 absolutePosition;	// Rounded backtrace position.
+
+			dt0 = deltaTime * float(pow(N, dimensions));
 
 			for (int x = 0; x < N; ++x)
 			{
@@ -366,7 +437,6 @@ namespace CFD
 							absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
 
 							// Interpolate between all neighbours
-
 							a = data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z));	// Left
 							b = data->getPreviousValue(Vector3(absolutePosition.x - 1, absolutePosition.y, absolutePosition.z)); // Right
 
@@ -412,11 +482,19 @@ namespace CFD
 					}
 				}
 			}
-			updateCurrentDataBoundary(data, boundary);
+			updateCurrentDataBoundary(data, int(boundary));
 		};
 
-		void updateMassConservation(VoxelData<float>* velocityX, VoxelData<float>* velocityY, VoxelData<float>* velocityZ, float deltaTime)
+		// Updates the velocity to be mass-conserving using Hodge-decomposition.
+		void updateMassConservation(VoxelData* velocityX, VoxelData* velocityY, VoxelData* velocityZ, float deltaTime)
 		{
+			UNREFERENCED_PARAMETER(deltaTime);
+
+			/*
+			What is going on here:
+				- I do not understand this too well but it makes the velocity mass-conserving by subtracting the gradient field from the imcrompressible field.
+			*/
+
 			for(int x = 0; x < N; x++)
 			{
 				for (int y = 0; y < N; y++)
@@ -518,8 +596,14 @@ namespace CFD
 			updateCurrentDataBoundary(velocityZ, 3);
 		}
 
-		void updateCurrentDataBoundary(VoxelData<float>* data, int boundary)
+		// Updates the voxel data's current data to enforce a boundary.
+		void updateCurrentDataBoundary(VoxelData* data, int boundary)
 		{
+			/*
+			What is going on here:
+				- Sets the data to be constrained by boundaries on X,Y,Z.
+			*/
+
 			for (int i = 0; i < N; i++) {
 
 				data->setCurrentValue(Vector3(0, i, 0), (boundary == 1) ? -data->getCurrentValue(Vector3(1, i, 0)) : data->getCurrentValue(Vector3(1, i, 0)));
@@ -534,8 +618,14 @@ namespace CFD
 			data->setCurrentValue(Vector3(N+1, N+1, 0), 0.5f * (data->getCurrentValue(Vector3(N,N+1,0)) + data->getCurrentValue(Vector3(N+1, N, 0))));
 		}
 
-		void updatePreviousDataBoundary(VoxelData<float>* data, int boundary)
+		// Updates the voxel data's previous data to enforce a boundary.
+		void updatePreviousDataBoundary(VoxelData* data, int boundary)
 		{
+			/*
+			What is going on here:
+				- Sets the data to be constrained by boundaries on X,Y,Z.
+			*/
+
 			for (int i = 0; i < N; i++) {
 
 				data->setPreviousValue(Vector3(0, i, 0), (boundary == 1) ? -data->getPreviousValue(Vector3(1, i, 0)) : data->getPreviousValue(Vector3(1, i, 0)));
@@ -550,53 +640,52 @@ namespace CFD
 			data->setPreviousValue(Vector3(N + 1, N + 1, 0), 0.5f * (data->getPreviousValue(Vector3(N, N + 1, 0)) + data->getPreviousValue(Vector3(N + 1, N, 0))));
 		}
 
-		void velocityStep(float deltaTime);
-
-		void printGrid()
-		{
-			// Print
-			for (int y = 0; y <= N; ++y)
-			{
-				for (int x = 0; x <= N; ++x)
-				{
-					printf("(%d, %d) [%f] [%f,%f] ", x,y, voxels->density->getCurrentValue(Vector3(x,y,0)), 
-														  voxels->velocityX->getCurrentValue(Vector3(x,y,0)),
-														  voxels->velocityY->getCurrentValue(Vector3(x, y, 0)));
-				}
-				printf("\n");
-			}
-			printf("\n");
-		}
-
+		// Sets all velocity current values to a reflection of their X,Y,Z coords to debug array alignment.
 		void setDebugVelocityValues();
+
+		// Sets all density current values to a reflection of their X,Y,Z coords to debug array alignment.
 		void setDebugDensityValues();
 
 		bool simulating = false;
+
+		// ------ Simulation Dimensions
 
 		int N;
 		int totalN;
 		int dimensions = 0;
 
+		// ------ Simulation Variables.
+
 		float viscocity = 0.0f;
 		float diffusionRate = 0.5f;
 		int randomVelocityMinMax = 0;
 
+		// Data held within the CFD Grid.
+
 		CFDData* voxels = nullptr;
+
+		// ------------ Input Data.
+
 		std::vector<QueueItem<float>> queuedDensities;
 		std::vector<QueueItem<Vector3>> queuedVelocities;
+
+		// ------------ Texture Data.
 
 		float* densityTextureData = nullptr;
 		Vector4* velocityTextureData = nullptr;
 
-		// Texture.
+		// ------------ Textures.
+
 		ID3D11SamplerState* sampler = nullptr;
 
 		// Density
+
 		ID3D11Texture3D* voxelDensTex = nullptr;
 		ID3D11Resource* voxelDensResource = nullptr;
 		ID3D11ShaderResourceView* voxelDensView = nullptr;
 
 		// Velocity
+
 		ID3D11Texture3D* voxelVeloTex = nullptr;
 		ID3D11Resource* voxelVeloResource = nullptr;
 		ID3D11ShaderResourceView* voxelVeloView = nullptr;
