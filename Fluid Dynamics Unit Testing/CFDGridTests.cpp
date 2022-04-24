@@ -32,6 +32,27 @@
 #include "Utility/Math/Math.h"
 #include "Utility/Math/Math.cpp"
 
+#include "Dependencies\UI\IMGUI\imgui.h"
+#include "Dependencies\UI\IMGUI\imgui.cpp"
+
+#include "Dependencies\UI\IMGUI\imgui_impl_dx11.h"
+#include "Dependencies\UI\IMGUI\imgui_impl_dx11.cpp"
+
+#include "Dependencies\UI\IMGUI\imgui_impl_win32.h"
+#include "Dependencies\UI\IMGUI\imgui_impl_win32.cpp"
+
+#include "Dependencies\UI\IMGUI\imgui_internal.h"
+#include "Dependencies\UI\IMGUI\imstb_rectpack.h"
+#include "Dependencies\UI\IMGUI\imstb_textedit.h"
+#include "Dependencies\UI\IMGUI\imstb_truetype.h"
+#include "Dependencies\UI\IMGUI\imconfig.h"
+
+#include "Dependencies\UI\IMGUI\imgui_draw.cpp"
+#include "Dependencies\UI\IMGUI\imgui_tables.cpp"
+#include "Dependencies\UI\IMGUI\imgui_widgets.cpp"
+
+
+
 /*
 TODO:
 Make this into a suite so we can re-use device and object to test other things, 
@@ -47,195 +68,86 @@ TEST(CFDGrid, setGridSize) {
 
 	GameObject object = GameObject();
 
-	int x = 5;
-	int y = 5;
-	int z = 5;
-
-	int targetx = 2;
-	int targety = 2;
-	int targetz = 4;
+	int size = 5;
 
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-	grid->setGrid(x, y, z);
+	grid->setGrid(size, 2);
 	
-	CFD::CFDVoxel* voxel = grid->getVoxelCurrentFrame(targetx, targety, targetz);
+	CFD::CFDData* voxels = grid->getAllVoxelData();
 
-	EXPECT_TRUE(voxel != nullptr)<< "Voxel could not be found!";
-	EXPECT_EQ(voxel->x, targetx) << "Voxel X Coordinate Incorrect!";
-	EXPECT_EQ(voxel->y, targety) << "Voxel Y Coordinate Incorrect!";
-	EXPECT_EQ(voxel->z, targetz) << "Voxel Z Coordinate Incorrect!";
+	EXPECT_TRUE(voxels->density != nullptr) << "Density is NULL on grid creation!";
+	EXPECT_TRUE(voxels->velocityX != nullptr) << "VelocityX is NULL on grid creation!";
+	EXPECT_TRUE(voxels->velocityY != nullptr) << "VelocityY is NULL on grid creation!";
+	EXPECT_TRUE(voxels->velocityZ != nullptr)<< "VelocityZ is NULL on grid creation!";
 }
 
-TEST(CFDGrid, getVoxelValid) {
+TEST(CFDGrid, setDensity2D) {
 
 	D3D* device = D3D::getInstance();
 	device->InitDevice();
 
 	GameObject object = GameObject();
 
-	int x = 5;
-	int y = 5;
-	int z = 5;
+	int size = 5;
 
 	int targetx = 2;
 	int targety = 2;
-	int targetz = 4;
+	int targetz = 0;
+
+	int targetValue = 204;
 
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-	grid->setGrid(x, y, z);
+	grid->setGrid(size, 2);
 
-	CFD::CFDVoxel* voxel = grid->getVoxelCurrentFrame(targetx, targety, targetz);
+	grid->getAllVoxelData()->density->setCurrentValue(Vector3(targetx, targety, targetz), targetValue);
+	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
 
-	EXPECT_TRUE(voxel != nullptr) << "Voxel could not be found!";
-	EXPECT_EQ(voxel->x, targetx) << "Voxel X Coordinate Incorrect!";
-	EXPECT_EQ(voxel->y, targety) << "Voxel Y Coordinate Incorrect!";
-	EXPECT_EQ(voxel->z, targetz) << "Voxel Z Coordinate Incorrect!";
+	EXPECT_EQ(targetValue, expected) << "Setting Density at a point 2D does not set properly!";
 }
 
-TEST(CFDGrid, getVoxelInvalid) {
+TEST(CFDGrid, setDensity3D) {
 
 	D3D* device = D3D::getInstance();
 	device->InitDevice();
 
 	GameObject object = GameObject();
 
-	int x = 5;
-	int y = 5;
-	int z = 5;
+	int size = 5;
+
+	int targetx = 2;
+	int targety = 2;
+	int targetz = 2;
+
+	int targetValue = 204;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 3);
+
+	grid->getAllVoxelData()->density->setCurrentValue(Vector3(targetx, targety, targetz), targetValue);
+	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
+
+	EXPECT_EQ(targetValue, expected) << "Setting Density at a point 3D does not set properly!";
+}
+
+TEST(CFDGrid, getInvalidIndex) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
 
 	int targetx = 10;
-	int targety = 2;
-	int targetz = 4;
+	int targety = 10;
+	int targetz = 10;
+
+	int targetValue = 204;
 
 	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-	grid->setGrid(x, y, z);
+	grid->setGrid(size, 3);
 
-	CFD::CFDVoxel* voxel = grid->getVoxelCurrentFrame(targetx, targety, targetz);
+	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
 
-	EXPECT_TRUE(voxel == nullptr);
-}
-
-TEST(CFDGrid, setDensitySource) {
-
-	D3D* device = D3D::getInstance();
-	device->InitDevice();
-
-	GameObject object = GameObject();
-
-	int x = 1;
-	int y = 1;
-	int z = 1;
-	float value = 10;
-
-	float deltaTime = 0.1f;
-
-	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-
-	grid->setGrid(2, 2, 2);
-	grid->addDensitySource(x, y, z, value);
-	grid->Update(deltaTime);
-	float result = grid->getDensity(x, y, z);
-	float expected = 0.72254;
-
-	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f)) << "Result: " << result << " Expectation: " << expected;
-}
-
-TEST(CFDGrid, setDensitySourceInvalid) {
-
-	D3D* device = D3D::getInstance();
-	device->InitDevice();
-
-	GameObject object = GameObject();
-
-	int x = 11;
-	int y = 24;
-	int z = 32;
-	float value = 10;
-
-	float deltaTime = 0.1f;
-
-	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-
-	grid->setGrid(10, 10, 10);
-	grid->addDensitySource(x, y, z, value);
-	grid->Update(deltaTime);
-	float result = grid->getDensity(x, y, z);
-	float expected = -1;
-
-	EXPECT_EQ(result, expected);
-}
-
-/*----- Stability Tests ------*/
-
-TEST(CFDSimulation, stableDiffuse2D) {
-
-	D3D* device = D3D::getInstance();
-	device->InitDevice();
-
-	GameObject object = GameObject();
-
-	int iterations = 100;
-
-	int gX = 4;
-	int gY = 4;
-	int gZ = 1;
-
-	int x = 0;
-	int y = 0;
-	int z = 0;
-	float value = 10;
-
-	float deltaTime = 0.1f;
-
-	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-
-	grid->setGrid(gX, gY, gZ);
-
-	for(int i = 0; i < iterations; ++i)
-	{
-		grid->addDensitySource(x, y, z, value);
-		grid->Update(deltaTime);
-	}
-
-	float result = grid->getDensity(x, y, z);
-	float expected = 0.000044;
-
-	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f)) << "Result after " << iterations << " iterations: " << result;
-}
-
-TEST(CFDSimulation, stableDiffuse3D) {
-
-	D3D* device = D3D::getInstance();
-	device->InitDevice();
-
-	GameObject object = GameObject();
-
-	int iterations = 100;
-
-	int gX = 10;
-	int gY = 10;
-	int gZ = 10;
-
-	int x = 0;
-	int y = 0;
-	int z = 0;
-	float value = 10;
-
-	float deltaTime = 0.1f;
-
-	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
-
-	grid->setGrid(gX, gY, gZ);
-
-	for (int i = 0; i < iterations; ++i)
-	{
-		grid->addDensitySource(x, y, z, value);
-		grid->Update(deltaTime);
-	}
-
-	float result = grid->getDensity(x, y, z);
-	float expected = 0.000001;
-
-	// For now so since we know it does fail
-	EXPECT_TRUE(Math::compareFloat(result, expected, 0.00001f)) << "Result after " << iterations << " iterations: " << result;
+	EXPECT_EQ(expected, 0) << "Getting a invalid point doesnt return properly!";
 }

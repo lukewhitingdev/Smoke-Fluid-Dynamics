@@ -119,7 +119,7 @@ HRESULT Window::InitWindow(HINSTANCE hInstance, int nCmdShow)
     viewHeight = 720;
 
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-    windowHandle = CreateWindow(L"WindowClass", L"Workshop Engine",
+    windowHandle = CreateWindow(L"WindowClass", L"Fluid Dynamics",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
         nullptr);

@@ -336,6 +336,9 @@ namespace CFD
 		// Returns the voxel at the passed in position.
 		CFDVoxel getVoxel(const Vector3& pos);
 
+		// Returns all the voxel data in the simulation.
+		CFDData* getAllVoxelData() { return voxels; }
+
 	private:
 		
 		// Resets all the current frames values of all data in the simulation.
