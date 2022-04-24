@@ -328,7 +328,7 @@ namespace CFD
 						}
 					}
 				}
-				set_bnd(N, boundary, data->getCurrentArray());
+				//set_bnd(N, boundary, data->getCurrentArray());
 			}
 		};
 
@@ -346,38 +346,68 @@ namespace CFD
 				{
 					for (int z = 0; z < N; ++z)
 					{
-						backtracePosition = Vector3(float(x - dt0 * velocityDataX->getCurrentValue(Vector3(x, y, z))),
-							float(y - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))),
-							float(z - dt0 * velocityDataZ->getCurrentValue(Vector3(x, y, z))));
+						float a, b;
+						float interpX, interpY, interpZ;
+						float value;
 
-						Math::clamp(backtracePosition, 0.5f, N + 0.5f);
+						if(dimensions > 2)
+						{
+							backtracePosition = Vector3(float(x - dt0 * velocityDataX->getCurrentValue(Vector3(x, y, z))),
+								float(y - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))),
+								float(z - dt0 * velocityDataZ->getCurrentValue(Vector3(x, y, z))));
 
-						absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
+							Math::clamp(backtracePosition, 0.5f, N + 0.5f);
 
-						// Interpolate between all neighbours
+							absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
 
-						float a = data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z));	// Left
-						float b = data->getPreviousValue(Vector3(absolutePosition.x - 1, absolutePosition.y, absolutePosition.z)); // Right
+							// Interpolate between all neighbours
 
-						float interpX = Math::lerp(a, b, backtracePosition.x);
+							a = data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z));	// Left
+							b = data->getPreviousValue(Vector3(absolutePosition.x - 1, absolutePosition.y, absolutePosition.z)); // Right
 
-						a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y+1, absolutePosition.z));	// up
-						b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y-1, absolutePosition.z)); // down
+							interpX = Math::lerp(a, b, backtracePosition.x);
 
-						float interpY = Math::lerp(a, b, backtracePosition.y);
+							a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y + 1, absolutePosition.z));	// up
+							b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y - 1, absolutePosition.z)); // down
 
-						a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z+1));	// forward
-						b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z-1)); // back
+							interpY = Math::lerp(a, b, backtracePosition.y);
 
-						float interpZ = Math::lerp(a, b, backtracePosition.z);
+							a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z + 1));	// forward
+							b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y, absolutePosition.z - 1)); // back
 
-						float value = (interpX + interpY + interpZ);
+							interpZ = Math::lerp(a, b, backtracePosition.z);
 
+							value = (interpX + interpY + interpZ);
+						}
+						else
+						{
+							backtracePosition = Vector3(float(x - dt0 * velocityDataX->getCurrentValue(Vector3(x, y, z))), 
+														float(y - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))),
+														float(z - dt0 * velocityDataY->getCurrentValue(Vector3(x, y, z))));
+
+							Math::clamp(backtracePosition, 0.5f, N + 0.5f);
+
+							absolutePosition = Vector3(int(backtracePosition.x), int(backtracePosition.y), int(backtracePosition.z));
+
+							// Interpolate between all neighbours
+
+							a = data->getPreviousValue(Vector3(absolutePosition.x + 1, absolutePosition.y, absolutePosition.z));	// Left
+							b = data->getPreviousValue(Vector3(absolutePosition.x - 1, absolutePosition.y, absolutePosition.z)); // Right
+
+							interpX = Math::lerp(a, b, backtracePosition.x);
+
+							a = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y + 1, absolutePosition.z));	// up
+							b = data->getPreviousValue(Vector3(absolutePosition.x, absolutePosition.y - 1, absolutePosition.z)); // down
+
+							interpY = Math::lerp(a, b, backtracePosition.y);
+
+							value = (interpX + interpY);
+						}
 						data->setCurrentValue(Vector3(x, y, z), value);
 					}
 				}
 			}
-			set_bnd(N, boundary, data->getCurrentArray());
+			//set_bnd(N, boundary, data->getCurrentArray());
 		};
 
 
