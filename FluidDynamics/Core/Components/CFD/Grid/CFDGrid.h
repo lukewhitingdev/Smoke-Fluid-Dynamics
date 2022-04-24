@@ -328,7 +328,7 @@ namespace CFD
 						}
 					}
 				}
-				//set_bnd(N, boundary, data->getCurrentArray());
+				set_bnd(N, boundary, data->getCurrentArray());
 			}
 		};
 
@@ -403,11 +403,11 @@ namespace CFD
 
 							value = (interpX + interpY);
 						}
-						data->setCurrentValue(Vector3(x, y, z), value);
+						data->setCurrentValue(Vector3(x, y, z), Math::clamp(value, 0.0f, FLT_MAX));
 					}
 				}
 			}
-			//set_bnd(N, boundary, data->getCurrentArray());
+			set_bnd(N, boundary, data->getCurrentArray());
 		};
 
 
