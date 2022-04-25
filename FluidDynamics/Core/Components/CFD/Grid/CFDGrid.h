@@ -63,7 +63,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to assign a value to a voxel that is out of array range!. : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
+				if (logging)
+					printf("Tried to assign a value to a voxel that is out of array range!. : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
 			}
 		}
 
@@ -77,7 +78,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to assign a value to a voxel index that is out of array range!. : (%d) \n", index);
+				if (logging)
+					printf("Tried to assign a value to a voxel index that is out of array range!. : (%d) \n", index);
 			}
 		}
 
@@ -93,7 +95,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to get a voxel value that is out of range! : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
+				if (logging)
+					printf("Tried to get a voxel value that is out of range! : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
 				return 0.0f;
 			}
 		}
@@ -108,7 +111,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to get a voxel value that is out of range! : (%d) \n", index);
+				if (logging)
+					printf("Tried to get a voxel value that is out of range! : (%d) \n", index);
 				return 0.0f;
 			}
 		}
@@ -125,7 +129,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to assign a value to a voxel that is out of array range!. : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
+				if (logging)
+					printf("Tried to assign a value to a voxel that is out of array range!. : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
 			}
 		}
 
@@ -139,7 +144,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to assign a value to a voxel index that is out of array range!. : (%d) \n", index);
+				if (logging)
+					printf("Tried to assign a value to a voxel index that is out of array range!. : (%d) \n", index);
 			}
 		}
 
@@ -155,7 +161,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to get a voxel value that is out of range! : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
+				if (logging)
+					printf("Tried to get a voxel value that is out of range! : (%f, %f, %f) \n", pos.x, pos.y, pos.z);
 				return 0.0f;
 			}
 		}
@@ -170,7 +177,8 @@ namespace CFD
 			else
 			{
 				// Log.
-				printf("Tried to get a voxel value that is out of range! : (%d) \n", index);
+				if(logging)
+					printf("Tried to get a voxel value that is out of range! : (%d) \n", index);
 				return 0.0f;
 			}
 		}
@@ -189,6 +197,9 @@ namespace CFD
 			curr = tmp;
 		};
 		
+		// Toggles logging of errors.
+		void setLogging(bool value) { logging = value; }
+
 	private:
 
 		// Returns the index in a 1D array from the passed in position.
@@ -206,6 +217,8 @@ namespace CFD
 
 		float* curr = nullptr;
 		float* prev = nullptr;
+
+		bool logging = false;
 	};
 
 	// Holds the data the voxels within the simulation
@@ -338,6 +351,16 @@ namespace CFD
 
 		// Returns all the voxel data in the simulation.
 		CFDData* getAllVoxelData() { return voxels; }
+
+		// Enables/Disables logging.
+		void setLogging(const bool value) {
+			voxels->density->setLogging(value);
+			voxels->velocityX->setLogging(value);
+			voxels->velocityY->setLogging(value);
+			voxels->velocityZ->setLogging(value);
+
+			logging = value;
+		}
 
 	private:
 		
@@ -683,6 +706,7 @@ namespace CFD
 		void setDebugDensityValues();
 
 		bool simulating = false;
+		bool logging = false;
 
 		// ------ Simulation Dimensions
 
