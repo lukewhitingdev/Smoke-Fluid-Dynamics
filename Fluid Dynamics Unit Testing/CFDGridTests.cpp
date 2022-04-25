@@ -81,6 +81,54 @@ TEST(CFDGrid, setGridSize) {
 	EXPECT_TRUE(voxels->velocityZ != nullptr)<< "VelocityZ is NULL on grid creation!";
 }
 
+TEST(CFDGrid, setDensityRoot2D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	int targetx = 0;
+	int targety = 0;
+	int targetz = 0;
+
+	int targetValue = 204;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 2);
+
+	grid->getAllVoxelData()->density->setCurrentValue(Vector3(targetx, targety, targetz), targetValue);
+	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
+
+	EXPECT_EQ(targetValue, expected) << "Setting Density at a point 2D does not set properly!";
+}
+
+TEST(CFDGrid, setDensityRoot3D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	int targetx = 0;
+	int targety = 0;
+	int targetz = 0;
+
+	int targetValue = 204;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 3);
+
+	grid->getAllVoxelData()->density->setCurrentValue(Vector3(targetx, targety, targetz), targetValue);
+	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
+
+	EXPECT_EQ(targetValue, expected) << "Setting Density at a point 2D does not set properly!";
+}
+
 TEST(CFDGrid, setDensity2D) {
 
 	D3D* device = D3D::getInstance();
@@ -129,7 +177,30 @@ TEST(CFDGrid, setDensity3D) {
 	EXPECT_EQ(targetValue, expected) << "Setting Density at a point 3D does not set properly!";
 }
 
-TEST(CFDGrid, getInvalidIndex) {
+TEST(CFDGrid, getInvalidIndex2D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	int targetx = 10;
+	int targety = 10;
+	int targetz = 0;
+
+	int targetValue = 204;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 2);
+
+	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
+
+	EXPECT_EQ(expected, 0) << "Getting a invalid point doesnt return properly!";
+}
+
+TEST(CFDGrid, getInvalidIndex3D) {
 
 	D3D* device = D3D::getInstance();
 	device->InitDevice();
@@ -150,4 +221,174 @@ TEST(CFDGrid, getInvalidIndex) {
 	int expected = int(grid->getAllVoxelData()->density->getCurrentValue(Vector3(targetx, targety, targetz)));
 
 	EXPECT_EQ(expected, 0) << "Getting a invalid point doesnt return properly!";
+}
+
+TEST(CFDSim, emptySimulation) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 2);
+	grid->Start();
+
+	grid->setLogging(false);
+
+	for(int i = 0; i < 50; ++i)
+	{
+		grid->Update(0.016f);
+	}
+
+	std::vector<int> failedIndexes;
+	for(int i = 0; i < grid->getGridSize(); ++i)
+	{
+		if(grid->getAllVoxelData()->density->getCurrentValue(i) == 0)
+		{
+			failedIndexes.push_back(i);
+		}
+	}
+
+	EXPECT_FALSE(failedIndexes.size() == 0) << "Some indexes where not zero when playing the simulation with no forces. Failed Indexes Count: " << failedIndexes.size();
+}
+
+TEST(CFDSim, diffusion2D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 2);
+	grid->Start();
+
+	grid->setLogging(false);
+
+	const Vector3 target = Vector3(0, 0, 0);
+
+	for (int i = 0; i < 50; ++i)
+	{
+		grid->addDensity(target, 10);
+		grid->Update(0.016f);
+	}
+
+	const float expected = 0.96635f;
+	float value = grid->getAllVoxelData()->density->getCurrentValue(target);
+
+	EXPECT_TRUE(Math::compareFloat(expected, value, 0.00001f)) << "Expected: " << expected << " Value: " << value;
+}
+
+TEST(CFDSim, diffusion3D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 3);
+	grid->Start();
+
+	grid->setLogging(false);
+
+	const Vector3 target = Vector3(0, 0, 0);
+
+	for (int i = 0; i < 50; ++i)
+	{
+		grid->addDensity(target, 10);
+		grid->Update(0.016f);
+	}
+
+	const float expected = 0.20130f;
+	float value = grid->getAllVoxelData()->density->getCurrentValue(target);
+
+	EXPECT_TRUE(Math::compareFloat(expected, value, 0.00001f)) << "Expected: " << expected << " Value: " << value;
+}
+
+TEST(CFDSim, velocity2D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 2);
+	grid->setViscocity(1.0f);
+	grid->Start();
+
+	grid->setLogging(false);
+
+	const Vector3 target = Vector3(1, 0, 0);
+	const Vector3 velo = Vector3(100,100,100);
+
+	for (int i = 0; i < 5; ++i)
+	{
+		grid->addVelocity(target, velo);
+		grid->Update(0.016f);
+	}
+
+	const float expectedX = -2.12018f;
+	const float expectedY = 5.822224f;
+	const float expectedZ = 0.0f;
+
+	float valueX = grid->getAllVoxelData()->velocityX->getCurrentValue(target);
+	float valueY = grid->getAllVoxelData()->velocityY->getCurrentValue(target);
+	float valueZ = grid->getAllVoxelData()->velocityZ->getCurrentValue(target);
+
+	bool value = (Math::compareFloat(expectedX, valueX, 0.00001f) &&
+				  Math::compareFloat(expectedY, valueY, 0.00001f) &&
+				  Math::compareFloat(expectedZ, valueZ, 0.00001f));
+
+	EXPECT_TRUE(value) << "Expected: (" << expectedX << "," << expectedY << "," << expectedZ << ") Value: ("<< valueX << "," << valueY << "," << valueZ << ")";
+}
+
+TEST(CFDSim, velocity3D) {
+
+	D3D* device = D3D::getInstance();
+	device->InitDevice();
+
+	GameObject object = GameObject();
+
+	int size = 5;
+
+	CFD::CFDGrid* grid = object.addComponent<CFD::CFDGrid>();
+	grid->setGrid(size, 3);
+	grid->setViscocity(1.0f);
+	grid->Start();
+
+	grid->setLogging(false);
+
+	const Vector3 target = Vector3(1, 0, 0);
+	const Vector3 velo = Vector3(100, 100, 100);
+
+	for (int i = 0; i < 5; ++i)
+	{
+		grid->addVelocity(target, velo);
+		grid->Update(0.016f);
+	}
+
+	const float expectedX = -0.33716f;
+	const float expectedY = 0.0f;
+	const float expectedZ = 0.0f;
+
+	float valueX = grid->getAllVoxelData()->velocityX->getCurrentValue(target);
+	float valueY = grid->getAllVoxelData()->velocityY->getCurrentValue(target);
+	float valueZ = grid->getAllVoxelData()->velocityZ->getCurrentValue(target);
+
+	bool value = (Math::compareFloat(expectedX, valueX, 0.00001f) &&
+		Math::compareFloat(expectedY, valueY, 0.00001f) &&
+		Math::compareFloat(expectedZ, valueZ, 0.00001f));
+
+	EXPECT_TRUE(value) << "Expected: (" << expectedX << "," << expectedY << "," << expectedZ << ") Value: (" << valueX << "," << valueY << "," << valueZ << ")";
 }
