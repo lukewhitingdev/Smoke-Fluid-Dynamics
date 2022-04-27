@@ -364,6 +364,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Components\CFD\Grid\CFDGrid.cpp" />
     <ClCompile Include="Core\Components\Camera\Camera.cpp" />
+    <ClCompile Include="Dependencies\Profiler\Profiler.cpp" />
     <ClCompile Include="Dependencies\Textures\DDSTextureLoader.cpp" />
     <ClCompile Include="Core\Entities\GameObject.cpp" />
     <ClCompile Include="Core\Components\Grid\Grid.cpp" />
@@ -391,6 +392,8 @@
     <ClInclude Include="Core\Entity System\Component.h" />
     <ClInclude Include="Core\Entity System\ComponentTypes.h" />
     <ClInclude Include="Core\Entity System\Entity.h" />
+    <ClInclude Include="Dependencies\Profiler\Profile.h" />
+    <ClInclude Include="Dependencies\Profiler\Profiler.h" />
     <ClInclude Include="Dependencies\Textures\DDSTextureLoader.h" />
     <ClInclude Include="Core\Entities\GameObject.h" />
     <ClInclude Include="Core\Components\Grid\Grid.h" />
